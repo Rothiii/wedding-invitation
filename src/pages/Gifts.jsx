@@ -23,6 +23,11 @@ export default function Gifts() {
         setCopiedAccount(bank);
         setTimeout(() => setCopiedAccount(null), 2000);
     };
+
+    // Hide section if config or banks data is not set
+    if (!config?.data?.banks || config.data.banks.length === 0) {
+        return null;
+    }
     
     return (<>
         <section id="gifts" className="min-h-screen relative overflow-hidden">
