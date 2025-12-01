@@ -1,9 +1,11 @@
 import EventCards from '@/components/EventsCard'
-import config from '@/config/config'
+import { useConfig } from '@/hooks/useConfig'
 import { motion } from 'framer-motion'
 import { Heart } from 'lucide-react'
 
 export default function Events() {
+    const config = useConfig(); // Use hook to get config from API or fallback to static
+
     return (
         <>
             {/* Event Section */}
@@ -77,7 +79,7 @@ export default function Events() {
                         transition={{ duration: 0.8, delay: 0.6 }}
                         className="max-w-2xl mx-auto"
                     >
-                        <EventCards events={config.data.agenda} />
+                        <EventCards events={config.agenda} />
                     </motion.div>
                 </motion.div>
             </section>

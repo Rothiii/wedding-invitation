@@ -1,10 +1,13 @@
 // src/pages/LandingPage.jsx
-import config from '@/config/config';
+import { useConfig } from '@/hooks/useConfig';
 import { formatEventDate } from '@/lib/formatEventDate';
 import { motion } from 'framer-motion';
 import { Calendar, Clock } from 'lucide-react';
 
-const LandingPage = ({ onOpenInvitation }) => (
+const LandingPage = ({ onOpenInvitation }) => {
+  const config = useConfig(); // Use hook to get config from API or fallback to static
+
+  return (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
@@ -43,14 +46,14 @@ const LandingPage = ({ onOpenInvitation }) => (
             <div className="inline-flex flex-col items-center space-y-1 bg-white/80 px-4 sm:px-6 py-2 sm:py-3 rounded-xl">
               <Calendar className="w-5 h-5 text-rose-400" />
               <p className="text-gray-700 font-medium">
-                {formatEventDate(config.data.date)}
+                {formatEventDate(config.date)}
               </p>
             </div>
 
             <div className="inline-flex flex-col items-center space-y-1 bg-white/80 px-4 sm:px-6 py-2 sm:py-3 rounded-xl">
               <Clock className="w-5 h-5 text-rose-400" />
               <p className="text-gray-700 font-medium">
-                {config.data.time}
+                {config.time}
               </p>
             </div>
           </motion.div>
@@ -64,9 +67,9 @@ const LandingPage = ({ onOpenInvitation }) => (
           >
             <div className="space-y-2">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-gray-800 leading-tight">
-                {config.data.groomName}
+                {config.groomName}
                 <span className="text-rose-400 mx-2 sm:mx-3">&</span>
-                {config.data.brideName}
+                {config.brideName}
               </h1>
               <div className="h-px w-16 sm:w-24 mx-auto bg-rose-200" />
             </div>
@@ -101,6 +104,7 @@ const LandingPage = ({ onOpenInvitation }) => (
       </motion.div>
     </div>
   </motion.div>
-);
+  );
+};
 
 export default LandingPage;

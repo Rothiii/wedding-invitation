@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Music, PauseCircle, PlayCircle } from 'lucide-react';
-import config from '@/config/config';
+import { useConfig } from '@/hooks/useConfig';
 import BottomBar from '@/components/BottomBar';
 
 const Layout = ({ children }) => {
+  const config = useConfig(); // Use hook to get config from API or fallback to static
   const [isPlaying, setIsPlaying] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const audioRef = useRef(null);
@@ -13,8 +14,8 @@ const Layout = ({ children }) => {
   // First useEffect to handle initial setup and auto-play attempt
   useEffect(() => {
     // Create audio element
-    audioRef.current = new Audio(config.data.audio.src);
-    audioRef.current.loop = config.data.audio.loop;
+    audioRef.current = new Audio(config.audio?.src || '/audio/fulfilling-humming.mp3');
+    audioRef.current.loop = config.audio?.loop !== false;
 
     // Try to autoplay
     const attemptAutoplay = async () => {
@@ -192,7 +193,7 @@ const Layout = ({ children }) => {
               <div className="bg-black/80 text-white transform -translate-x-1/2 px-4 py-2 rounded-full backdrop-blur-sm flex items-center space-x-2">
                 <Music className="w-4 h-4 animate-pulse" />
                 <span className="text-sm whitespace-nowrap">
-                  {config.data.audio.title}
+                  {config.audio?.title || 'Background Music'}
                 </span>
               </div>
             </motion.div>

@@ -1,4 +1,4 @@
-import config from '@/config/config';
+import { useConfig } from '@/hooks/useConfig';
 import { motion } from 'framer-motion'
 import {
     Copy,
@@ -10,6 +10,7 @@ import {
 import { useState, useEffect } from 'react';
 
 export default function Gifts() {
+    const config = useConfig(); // Use hook to get config from API or fallback to static
     const [copiedAccount, setCopiedAccount] = useState(null);
     const [hasAnimated, setHasAnimated] = useState(false);
     
@@ -25,7 +26,7 @@ export default function Gifts() {
     };
 
     // Hide section if config or banks data is not set
-    if (!config?.data?.banks || config.data.banks.length === 0) {
+    if (!config?.banks || config.banks.length === 0) {
         return null;
     }
     
@@ -112,7 +113,7 @@ export default function Gifts() {
 
                 {/* Bank Accounts Grid */}
                 <div className="max-w-2xl mx-auto grid gap-6">
-                    {config.data.banks.map((account, index) => (
+                    {config.banks.map((account, index) => (
                         <motion.div
                             key={account.accountNumber}
                             initial={{ opacity: 0, y: 20 }}

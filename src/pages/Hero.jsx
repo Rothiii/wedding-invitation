@@ -1,11 +1,12 @@
 import { Calendar, Clock, Heart } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react';
-import config from '@/config/config';
+import { useConfig } from '@/hooks/useConfig';
 import { formatEventDate } from '@/lib/formatEventDate';
 import { safeBase64 } from '@/lib/base64';
 
 export default function Hero() {
+    const config = useConfig(); // Use hook to get config from API or fallback to static
     const [guestName, setGuestName] = useState('');
 
     useEffect(() => {
@@ -139,7 +140,7 @@ export default function Hero() {
                             transition={{ delay: 0.6 }}
                             className="text-3xl sm:text-5xl font-serif bg-clip-text text-transparent bg-gradient-to-r from-rose-600 to-pink-600"
                         >
-                            {config.data.groomName} & {config.data.brideName}
+                            {config.groomName} & {config.brideName}
                         </motion.h2>
                     </div>
 
@@ -166,7 +167,7 @@ export default function Hero() {
                                     >
                                         <Calendar className="w-4 h-4 text-rose-400" />
                                         <span className="text-gray-700 font-medium text-sm sm:text-base">
-                                            {formatEventDate(config.data.date, "full")}
+                                            {formatEventDate(config.date, "full")}
                                         </span>
                                     </motion.div>
 
@@ -178,7 +179,7 @@ export default function Hero() {
                                     >
                                         <Clock className="w-4 h-4 text-rose-400" />
                                         <span className="text-gray-700 font-medium text-sm sm:text-base">
-                                            {config.data.time}
+                                            {config.time}
                                         </span>
                                     </motion.div>
                                 </div>
@@ -202,7 +203,7 @@ export default function Hero() {
                                         Bapak/Ibu/Saudara/i
                                     </p>
                                     <p className="text-rose-500 font-semibold text-lg">
-                                        {guestName ? guestName : "Tamu"}
+                                        {guestName || "Tamu Undangan"}
                                     </p>
                                 </motion.div>
                             </div>
@@ -216,7 +217,7 @@ export default function Hero() {
                         <div className="absolute -bottom-2 -left-2 w-16 sm:w-24 h-16 sm:h-24 bg-rose-100/20 rounded-full blur-xl" />
                     </motion.div>
 
-                    <CountdownTimer targetDate={config.data.date} />
+                    <CountdownTimer targetDate={config.date} />
 
                     <div className="pt-6 relative">
                         <FloatingHearts />

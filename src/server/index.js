@@ -1,35 +1,117 @@
 import { Hono } from 'hono'
-import { serve } from '@hono/node-server'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
-import pool from './db/index.js'
 
+// Create main app and API sub-app
 const app = new Hono()
+const api = new Hono()
 
 // Middleware
 app.use('*', logger())
 app.use('*', cors({
-  origin: ['http://localhost:5173'],
+  origin: ['*'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
 }))
 
-// Health check
-app.get('/', (c) => c.json({ message: 'Sakeenah API is running' }))
+// Database connection helper
+// In Cloudflare Workers, use Hyperdrive binding (c.env.DB)
+// In Node.js, use the pool from db/index.js
+async function getDbClient(c) {
+  // Check if running in Cloudflare Workers with Hyperdrive
+  if (c.env?.DB) {
+    return c.env.DB
+  }
+
+  // Check if we have DATABASE_URL in env (for Wrangler dev with .env)
+  if (c.env?.DATABASE_URL) {
+    // In Wrangler dev mode, use node-postgres via dynamic import
+    try {
+      const pg = await import('pg')
+      const { Pool } = pg.default || pg
+
+      // Create a connection pool using DATABASE_URL from env
+      const pool = new Pool({
+        connectionString: c.env.DATABASE_URL,
+      })
+
+      return pool
+    } catch (error) {
+      console.error('Failed to create database connection:', error)
+      throw new Error('Database connection not available. Please configure Hyperdrive binding or DATABASE_URL.')
+    }
+  }
+
+  // Throw error if no database connection is available
+  throw new Error('No database connection available. Running in Wrangler dev requires DATABASE_URL in .env or Hyperdrive binding.')
+}
+
+// API routes are defined below
+// Note: Non-API routes will be handled by Cloudflare Workers Assets (serves from /dist)
 
 // ============ Invitation API ============
 
-// Get invitation by UID
-app.get('/api/invitation/:uid', async (c) => {
+// Get invitation by UID with all related data
+api.get('/invitation/:uid', async (c) => {
   const { uid } = c.req.param()
   try {
-    const result = await pool.query(
+    const pool = await getDbClient(c)
+
+    // Get invitation details
+    const invitationResult = await pool.query(
       'SELECT * FROM invitations WHERE uid = $1',
       [uid]
     )
-    if (result.rows.length === 0) {
+    if (invitationResult.rows.length === 0) {
       return c.json({ success: false, error: 'Invitation not found' }, 404)
     }
-    return c.json({ success: true, data: result.rows[0] })
+
+    const invitation = invitationResult.rows[0]
+
+    // Get agenda items
+    const agendaResult = await pool.query(
+      'SELECT id, title, date, start_time, end_time, location, address FROM agenda WHERE invitation_uid = $1 ORDER BY order_index, date',
+      [uid]
+    )
+
+    // Get bank accounts
+    const banksResult = await pool.query(
+      'SELECT id, bank, account_number, account_name FROM banks WHERE invitation_uid = $1 ORDER BY order_index',
+      [uid]
+    )
+
+    // Format the response to match frontend config structure
+    const data = {
+      title: invitation.title,
+      description: invitation.description,
+      groomName: invitation.groom_name,
+      brideName: invitation.bride_name,
+      parentGroom: invitation.parent_groom,
+      parentBride: invitation.parent_bride,
+      date: invitation.wedding_date,
+      time: invitation.time,
+      location: invitation.location,
+      address: invitation.address,
+      maps_url: invitation.maps_url,
+      maps_embed: invitation.maps_embed,
+      ogImage: invitation.og_image,
+      favicon: invitation.favicon,
+      audio: invitation.audio,
+      agenda: agendaResult.rows.map(a => ({
+        title: a.title,
+        date: a.date,
+        startTime: a.start_time,
+        endTime: a.end_time,
+        location: a.location,
+        address: a.address
+      })),
+      banks: banksResult.rows.map(b => ({
+        bank: b.bank,
+        accountNumber: b.account_number,
+        accountName: b.account_name
+      }))
+    }
+
+    return c.json({ success: true, data })
   } catch (error) {
     console.error('Error fetching invitation:', error)
     return c.json({ success: false, error: 'Internal server error' }, 500)
@@ -39,12 +121,14 @@ app.get('/api/invitation/:uid', async (c) => {
 // ============ Wishes API ============
 
 // Get all wishes for an invitation
-app.get('/api/:uid/wishes', async (c) => {
+api.get('/:uid/wishes', async (c) => {
   const { uid } = c.req.param()
   const limit = parseInt(c.req.query('limit') || '50')
   const offset = parseInt(c.req.query('offset') || '0')
 
   try {
+    const pool = await getDbClient(c)
+
     // Verify invitation exists
     const invitation = await pool.query(
       'SELECT uid FROM invitations WHERE uid = $1',
@@ -56,10 +140,11 @@ app.get('/api/:uid/wishes', async (c) => {
 
     // Get wishes
     const result = await pool.query(
-      `SELECT id, name, message, attendance, created_at 
-       FROM wishes 
-       WHERE invitation_uid = $1 
-       ORDER BY created_at DESC 
+      `SELECT id, name, message, attendance,
+              created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta' as created_at
+       FROM wishes
+       WHERE invitation_uid = $1
+       ORDER BY created_at DESC
        LIMIT $2 OFFSET $3`,
       [uid, limit, offset]
     )
@@ -86,10 +171,11 @@ app.get('/api/:uid/wishes', async (c) => {
 })
 
 // Create a new wish
-app.post('/api/:uid/wishes', async (c) => {
+api.post('/:uid/wishes', async (c) => {
   const { uid } = c.req.param()
 
   try {
+    const pool = await getDbClient(c)
     const body = await c.req.json()
     const { name, message, attendance } = body
 
@@ -112,9 +198,10 @@ app.post('/api/:uid/wishes', async (c) => {
 
     // Insert wish
     const result = await pool.query(
-      `INSERT INTO wishes (invitation_uid, name, message, attendance)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, name, message, attendance, created_at`,
+      `INSERT INTO wishes (invitation_uid, name, message, attendance, created_at)
+       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Jakarta')
+       RETURNING id, name, message, attendance,
+                 created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta' as created_at`,
       [uid, name.trim(), message.trim(), attendanceValue]
     )
 
@@ -126,10 +213,11 @@ app.post('/api/:uid/wishes', async (c) => {
 })
 
 // Delete a wish (optional - for admin)
-app.delete('/api/:uid/wishes/:id', async (c) => {
+api.delete('/:uid/wishes/:id', async (c) => {
   const { uid, id } = c.req.param()
 
   try {
+    const pool = await getDbClient(c)
     const result = await pool.query(
       'DELETE FROM wishes WHERE id = $1 AND invitation_uid = $2 RETURNING id',
       [id, uid]
@@ -147,17 +235,18 @@ app.delete('/api/:uid/wishes/:id', async (c) => {
 })
 
 // Get attendance stats
-app.get('/api/:uid/stats', async (c) => {
+api.get('/:uid/stats', async (c) => {
   const { uid } = c.req.param()
 
   try {
+    const pool = await getDbClient(c)
     const result = await pool.query(
-      `SELECT 
+      `SELECT
         COUNT(*) FILTER (WHERE attendance = 'ATTENDING') as attending,
         COUNT(*) FILTER (WHERE attendance = 'NOT_ATTENDING') as not_attending,
         COUNT(*) FILTER (WHERE attendance = 'MAYBE') as maybe,
         COUNT(*) as total
-       FROM wishes 
+       FROM wishes
        WHERE invitation_uid = $1`,
       [uid]
     )
@@ -169,11 +258,8 @@ app.get('/api/:uid/stats', async (c) => {
   }
 })
 
-// Start server
-const port = process.env.PORT || 3000
-console.log(`🚀 Server is running on http://localhost:${port}`)
+// Mount API routes under /api prefix
+app.route('/api', api)
 
-serve({
-  fetch: app.fetch,
-  port
-})
+// Export for Cloudflare Workers
+export default app

@@ -2,42 +2,164 @@
 
 ![Preview](public/preview.png)
 
-A modern, interactive wedding invitation website built with Vite (React), Tailwind CSS, and Framer Motion. Created by [@mrofisr](https://github.com/mrofisr).
+A modern, interactive wedding invitation website built with Vite (React), Tailwind CSS, and Framer Motion. Features a **database-driven multi-tenant system** with backend API for managing multiple weddings. Created by [@mrofisr](https://github.com/mrofisr).
 
 ## Features
-- Modern design & smooth animations
-- Fully responsive & mobile-first layout
-- Background music & interactive wishes (WIP)
-- Fun confetti effects and countdown timer
-- Google Maps integration
-- Digital envelope/gift feature with bank account details
-- Multiple event agenda support
+- 🎨 Modern design & smooth animations
+- 📱 Fully responsive & mobile-first layout
+- 🎵 Background music with autoplay controls
+- 💬 **Interactive wishes system with attendance tracking (PostgreSQL-backed)**
+- 🎉 Fun confetti effects and countdown timer
+- 🗺️ Google Maps integration
+- 💝 Digital envelope/gift feature with bank account details
+- 📅 Multiple event agenda support
+- 🔗 **Personalized invitation links** with guest names
+- 🌐 **Multi-tenant system**: Host multiple weddings on one deployment
+- ⚡ **REST API backend** (Hono + PostgreSQL)
+- 🕐 **Asia/Jakarta timezone support** for all timestamps
 
 ## Tech Stack
+
+### Frontend
 - [Vite (React)](https://vite.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Framer Motion](https://www.framer.com/motion/)
 - [Lucide Icons](https://lucide.dev/)
 - [React Confetti](https://www.npmjs.com/package/react-confetti)
+- [React Router](https://reactrouter.com/)
 
-## Installation
+### Backend
+- [Hono](https://hono.dev/) - Lightweight web framework
+- [PostgreSQL](https://www.postgresql.org/) - Database
+- [Bun](https://bun.sh/) - JavaScript runtime & package manager
+
+## Quick Start
+
+### Prerequisites
+- [Bun](https://bun.sh/) installed
+- PostgreSQL database running
+
+### Installation
 1. Clone the repository and install dependencies:
-  ```bash
-  git clone https://github.com/mrofisr/islamic-wedding-invitation
-  cd islamic-wedding-invitation
-  bun install
-  ```
-2. Update your wedding details in `src/config.js`.
-3. Start the development server:
-  ```bash
-  bun run dev
-  ```
-  Open [http://localhost:5173/](http://localhost:5173/) in your browser.
+   ```bash
+   git clone https://github.com/mrofisr/islamic-wedding-invitation
+   cd islamic-wedding-invitation
+   bun install
+   ```
+
+2. Set up the database:
+   ```bash
+   # Create PostgreSQL database
+   createdb sakeenah
+
+   # Run the schema (create tables)
+   psql -d sakeenah -f src/server/db/schema.sql.example
+   ```
+
+3. Configure environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit `.env` file:
+   ```env
+   # Frontend
+   VITE_API_URL=http://localhost:3000
+   VITE_INVITATION_UID=your-unique-invitation-id
+
+   # Backend
+   DATABASE_URL=postgresql://username:password@localhost:5432/sakeenah
+   PORT=3000
+   ```
+
+4. Add your wedding data:
+   ```bash
+   # Use the example SQL template
+   cp src/server/db/add-wedding.sql.example src/server/db/my-wedding.sql
+
+   # Edit my-wedding.sql with your details, then run:
+   psql -d sakeenah -f src/server/db/my-wedding.sql
+   ```
+
+5. Start the development servers:
+   ```bash
+   # Run both client and server concurrently
+   bun run dev
+   ```
+
+   Or run them separately:
+   ```bash
+   # Terminal 1: Frontend (Vite)
+   bun run dev:client
+
+   # Terminal 2: Backend API
+   bun run dev:server
+   ```
+
+6. Open your browser:
+   - **With path routing**: [http://localhost:5173/your-uid](http://localhost:5173/your-uid)
+   - **Legacy query params**: [http://localhost:5173/?uid=your-uid](http://localhost:5173/?uid=your-uid)
+
+## Architecture
+
+This project uses a **client-server architecture**:
+
+- **Frontend (Port 5173)**: React SPA built with Vite
+- **Backend API (Port 3000)**: Hono REST API server
+- **Database**: PostgreSQL with multi-tenant design
+
+### Database-Driven System
+
+All wedding data is stored in PostgreSQL, **not in code**. Each wedding has a unique UID that's used in URLs:
+
+- URLs: `https://your-site.com/couple-name-2025`
+- API fetches wedding details based on UID
+- Multiple weddings can share the same deployment
+
+See [CLAUDE.md](./CLAUDE.md) for detailed architecture documentation.
+
+## Personalized Invitation Links
+
+Generate personalized invitation links with pre-filled guest names:
+
+```bash
+# Generate links for your guest list
+bun run generate-links
+```
+
+This creates URLs like:
+```
+http://localhost:5173/rifqi-dina-2025?guest=QWhtYWQgQWJkdWxsYWg=
+```
+
+When guests open their link:
+- Their name appears in the hero section
+- Wishes form is pre-filled with their name
+- They can still edit their name if needed
+
+See [PERSONALIZED-INVITATIONS.md](./PERSONALIZED-INVITATIONS.md) for complete guide.
 
 ## Customization
 
-### Basic Setup
-Edit `src/config.js` to customize your wedding invitation. Here's what you can configure:
+### Database Method (Recommended)
+
+Add wedding data via SQL (supports multiple weddings):
+
+1. Copy the template:
+   ```bash
+   cp src/server/db/add-wedding.sql.example my-wedding.sql
+   ```
+
+2. Edit `my-wedding.sql` with your details
+
+3. Insert into database:
+   ```bash
+   psql -d sakeenah -f my-wedding.sql
+   ```
+
+### Static Config (Fallback)
+
+For development/testing, you can also edit `src/config/config.js` (deprecated):
 
 #### Wedding Information
 ```javascript
@@ -204,6 +326,207 @@ const config = {
 
 export default config;
 ```
+
+## API Endpoints
+
+The backend provides these REST endpoints:
+
+### Invitations
+- `GET /api/invitation/:uid` - Get wedding details, agenda, and bank accounts
+
+### Wishes
+- `GET /api/:uid/wishes` - Get all wishes (supports pagination)
+- `POST /api/:uid/wishes` - Create new wish
+- `DELETE /api/:uid/wishes/:id` - Delete wish (admin)
+- `GET /api/:uid/stats` - Get attendance statistics
+
+Example API call:
+```bash
+curl http://localhost:3000/api/invitation/rifqi-dina-2025
+```
+
+## Deployment
+
+### Build for Production
+
+```bash
+# Build frontend
+bun run build
+
+# Preview production build
+bun run preview
+```
+
+### Environment Variables (Production)
+
+```env
+# Frontend
+VITE_API_URL=https://your-api-domain.com
+VITE_INVITATION_UID=default-wedding-uid
+
+# Backend
+DATABASE_URL=postgresql://user:pass@your-db-host:5432/sakeenah
+PORT=3000
+```
+
+### Hosting Options
+
+**Option 1: Cloudflare Workers (Recommended)**
+- Full-stack deployment on Cloudflare's edge network
+- Serves both frontend and backend from a single worker
+- Uses Hyperdrive for PostgreSQL connection pooling
+- See [Cloudflare Workers Deployment](#cloudflare-workers-deployment) section below
+
+**Option 2: Separate Hosting**
+- **Frontend**: Vercel, Netlify, or any static hosting (build output: `dist/` folder)
+- **Backend**: VPS with Bun runtime, Docker container, or cloud platforms (Railway, Render, Fly.io)
+- **Database**: Supabase (PostgreSQL), Railway PostgreSQL, or self-hosted PostgreSQL
+
+## Cloudflare Workers Deployment
+
+Deploy the entire application (frontend + backend) to Cloudflare Workers with database connection via Hyperdrive.
+
+### Prerequisites
+
+1. Cloudflare account with Workers enabled
+2. Wrangler CLI: `npm install -g wrangler`
+3. PostgreSQL database (cloud-hosted recommended: Supabase, Neon, Railway, etc.)
+
+### Setup Steps
+
+#### 1. Authenticate with Cloudflare
+
+```bash
+wrangler login
+```
+
+#### 2. Create Hyperdrive Database Connection
+
+```bash
+# Replace with your actual PostgreSQL connection string
+wrangler hyperdrive create sakeenah-db \
+  --connection-string="postgresql://username:password@host:port/database"
+```
+
+Copy the Hyperdrive ID from the output.
+
+#### 3. Configure wrangler.jsonc
+
+Edit `wrangler.jsonc` and update:
+
+```jsonc
+{
+  "bindings": [
+    {
+      "name": "DB",
+      "type": "hyperdrive",
+      "id": "YOUR_HYPERDRIVE_ID_HERE"  // Paste your Hyperdrive ID
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "yourdomain.com/*",      // Your custom domain
+      "zone_name": "yourdomain.com"       // Your domain zone
+    }
+  ]
+}
+```
+
+#### 4. Update CORS Configuration
+
+In `src/server/index.js`, add your production domain:
+
+```javascript
+app.use('*', cors({
+  origin: ['http://localhost:5173', 'https://yourdomain.com'],  // Add your domain
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+}))
+```
+
+#### 5. Deploy
+
+```bash
+# Build and deploy in one command
+bun run deploy
+```
+
+Or separately:
+```bash
+# Build frontend first
+bun run build
+
+# Then deploy to Cloudflare
+bun run cf:deploy
+```
+
+### Cloudflare Workers Scripts
+
+```bash
+bun run deploy       # Build + deploy to Cloudflare Workers
+bun run cf:dev       # Test locally with Workers runtime
+bun run cf:deploy    # Deploy to Cloudflare Workers
+bun run cf:tail      # View live logs from deployed worker
+```
+
+### How It Works
+
+The application automatically detects its runtime environment:
+- **Local Development**: Uses Node.js with `@hono/node-server` and PostgreSQL connection from `.env`
+- **Cloudflare Workers**: Uses Hyperdrive binding (`c.env.DB`) for database access
+
+No code changes needed between environments!
+
+### Custom Domain Setup
+
+1. Add your domain to Cloudflare (DNS management)
+2. Update `routes` in `wrangler.jsonc` with your domain
+3. Deploy with `bun run cf:deploy`
+4. Your worker automatically binds to the domain
+
+### Monitoring & Debugging
+
+```bash
+# View real-time logs
+wrangler tail
+
+# Check Hyperdrive connection
+wrangler hyperdrive get sakeenah-db
+
+# Test deployment status
+wrangler deployments list
+```
+
+### Cloudflare Workers Free Tier
+
+- 100,000 requests/day
+- 10ms CPU time per request
+- Sufficient for most wedding invitation sites
+- Upgrade to Workers Paid ($5/month) for higher traffic
+
+## Scripts
+
+```bash
+# Development
+bun run dev              # Run both client & server
+bun run dev:client       # Run frontend only
+bun run dev:server       # Run backend only
+
+# Production
+bun run build            # Build frontend
+bun run preview          # Preview production build
+bun run server           # Run backend server
+
+# Cloudflare Workers Deployment
+bun run deploy           # Build + deploy to Cloudflare Workers
+bun run cf:dev           # Test locally with Workers runtime
+bun run cf:deploy        # Deploy to Cloudflare Workers
+bun run cf:tail          # View live logs from deployed worker
+
+# Utilities
+bun run generate-links   # Generate personalized invitation links
+bun run lint             # Lint code
+```
+
 ## Custom Wedding Invitation Service
 
 ### 💝 Want This Invitation Made for You?

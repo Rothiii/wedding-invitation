@@ -12,73 +12,118 @@ import {
     CheckCircle,
     XCircle,
     HelpCircle,
+    Loader2,
 } from 'lucide-react'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatEventDate } from '@/lib/formatEventDate';
+import { useInvitation } from '@/context/InvitationContext';
+import { fetchWishes, createWish } from '@/services/api';
+import { safeBase64 } from '@/lib/base64';
 
 export default function Wishes() {
+    const { uid } = useInvitation();
     const [showConfetti, setShowConfetti] = useState(false);
     const [newWish, setNewWish] = useState('');
+    const [guestName, setGuestName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [attendance, setAttendance] = useState('');
     const [isOpen, setIsOpen] = useState(false);
+    const [wishes, setWishes] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Get guest name from URL parameter
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const guestParam = urlParams.get('guest');
+
+        if (guestParam) {
+            try {
+                const decodedName = safeBase64.decode(guestParam);
+                setGuestName(decodedName);
+            } catch (error) {
+                console.error('Error decoding guest name:', error);
+                setGuestName('');
+            }
+        }
+    }, []);
 
     const options = [
         { value: 'ATTENDING', label: 'Ya, saya akan hadir' },
         { value: 'NOT_ATTENDING', label: 'Tidak, saya tidak bisa hadir' },
         { value: 'MAYBE', label: 'Mungkin, saya akan konfirmasi nanti' }
     ];
-    // Example wishes - replace with your actual data
-    const [wishes, setWishes] = useState([
-        {
-            id: 1,
-            name: "John Doe",
-            message: "Wishing you both a lifetime of love, laughter, and happiness! 🎉",
-            timestamp: "2024-12-24T23:20:00Z",
-            attending: "attending"
-        },
-        {
-            id: 2,
-            name: "Natalie",
-            message: "Wishing you both a lifetime of love, laughter, and happiness! 🎉",
-            timestamp: "2024-12-24T23:20:00Z",
-            attending: "attending"
-        },
-        {
-            id: 3,
-            name: "Abdur Rofi",
-            message: "Congratulations on your special day! May Allah bless your union! 🤲",
-            timestamp: "2024-12-25T23:08:09Z",
-            attending: "maybe"
+
+    // Fetch wishes on component mount
+    useEffect(() => {
+        if (!uid) {
+            setError('Invitation UID not found. Please check your URL.');
+            setIsLoading(false);
+            return;
         }
-    ]);
+
+        const loadWishes = async () => {
+            try {
+                setIsLoading(true);
+                const response = await fetchWishes(uid);
+                if (response.success) {
+                    setWishes(response.data);
+                }
+            } catch (err) {
+                console.error('Error loading wishes:', err);
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadWishes();
+    }, [uid]);
 
     const handleSubmitWish = async (e) => {
         e.preventDefault();
-        if (!newWish.trim()) return;
+        if (!newWish.trim() || !guestName.trim()) return;
+
+        if (!uid) {
+            alert('Invitation UID not found. Please check your URL.');
+            return;
+        }
 
         setIsSubmitting(true);
-        // Simulating API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        setError(null);
 
-        const newWishObj = {
-            id: wishes.length + 1,
-            name: "Guest", // Replace with actual user name
-            message: newWish,
-            attend: "attending",
-            timestamp: new Date().toISOString()
-        };
+        try {
+            const response = await createWish(uid, {
+                name: guestName.trim(),
+                message: newWish.trim(),
+                attendance: attendance || 'MAYBE'
+            });
 
-        setWishes(prev => [newWishObj, ...prev]);
-        setNewWish('');
-        setIsSubmitting(false);
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 3000);
+            if (response.success) {
+                // Add the new wish to the top of the list
+                setWishes(prev => [response.data, ...prev]);
+                // Reset form
+                setNewWish('');
+                setGuestName('');
+                setAttendance('');
+                // Show confetti
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 3000);
+            }
+        } catch (err) {
+            console.error('Error submitting wish:', err);
+            setError(err.message);
+            alert('Gagal mengirim pesan: ' + err.message);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     const getAttendanceIcon = (status) => {
-        switch (status) {
+        const normalizedStatus = status?.toLowerCase();
+        switch (normalizedStatus) {
             case 'attending':
                 return <CheckCircle className="w-4 h-4 text-emerald-500" />;
+            case 'not_attending':
             case 'not-attending':
                 return <XCircle className="w-4 h-4 text-rose-500" />;
             case 'maybe':
@@ -131,18 +176,41 @@ export default function Wishes() {
 
                 {/* Wishes List */}
                 <div className="max-w-2xl mx-auto space-y-6">
-                    <AnimatePresence>
-                        <Marquee speed={20}
-                            gradient={false}
-                            className="[--duration:20s] py-2">
-                            {wishes.map((wish, index) => (
+                    {isLoading && (
+                        <div className="flex justify-center items-center py-12">
+                            <Loader2 className="w-8 h-8 text-rose-500 animate-spin" />
+                            <span className="ml-3 text-gray-600">Memuat pesan...</span>
+                        </div>
+                    )}
+
+                    {error && !isLoading && (
+                        <div className="text-center py-8">
+                            <p className="text-rose-600">{error}</p>
+                        </div>
+                    )}
+
+                    {!isLoading && !error && wishes.length === 0 && (
+                        <div className="text-center py-12">
+                            <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                            <p className="text-gray-500">Belum ada pesan. Jadilah yang pertama!</p>
+                        </div>
+                    )}
+
+                    {!isLoading && wishes.length > 0 && (
+                        <AnimatePresence>
+                            <Marquee
+                                pauseOnHover={true}
+                                repeat={2}
+                                className="[--duration:40s] [--gap:1rem] py-2"
+                            >
+                                {wishes.map((wish, index) => (
                                 <motion.div
                                     key={wish.id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
                                     transition={{ delay: index * 0.1 }}
-                                    className="group relative w-[280px]"
+                                    className="group relative w-[320px]"
                                 >
                                     {/* Background gradient */}
                                     <div className="absolute inset-0 bg-gradient-to-r from-rose-100/50 to-pink-100/50 rounded-xl transform transition-transform group-hover:scale-[1.02] duration-300" />
@@ -169,7 +237,7 @@ export default function Wishes() {
                                                 <div className="flex items-center space-x-1 text-gray-500 text-xs">
                                                     <Clock className="w-3 h-3" />
                                                     <time className="truncate">
-                                                        {formatEventDate(wish.timestamp)}
+                                                        {formatEventDate(wish.created_at, 'short', true)} • {formatEventDate(wish.created_at, 'time', true)} WIB
                                                     </time>
                                                 </div>
                                             </div>
@@ -181,7 +249,7 @@ export default function Wishes() {
                                         </p>
 
                                         {/* Optional: Time indicator for recent messages */}
-                                        {Date.now() - new Date(wish.timestamp).getTime() < 3600000 && (
+                                        {Date.now() - new Date(wish.created_at).getTime() < 3600000 && (
                                             <div className="absolute top-2 right-2">
                                                 <span className="px-2 py-1 rounded-full bg-rose-100 text-rose-600 text-xs font-medium">
                                                     New
@@ -191,8 +259,9 @@ export default function Wishes() {
                                     </div>
                                 </motion.div>
                             ))}
-                        </Marquee>
-                    </AnimatePresence>
+                            </Marquee>
+                        </AnimatePresence>
+                    )}
                 </div>
                 {/* Wishes Form */}
                 <motion.div
@@ -204,7 +273,7 @@ export default function Wishes() {
                     <form onSubmit={handleSubmitWish} className="relative">
                         <div className="backdrop-blur-sm bg-white/80 p-6 rounded-2xl border border-rose-100/50 shadow-lg">
                             <div className='space-y-2'>
-                                {/* Name Input */}
+                                {/* Name Input - Pre-filled from URL or editable */}
                                 <div className="space-y-2">
                                     <div className="flex items-center space-x-2 text-gray-500 text-sm mb-1">
                                         <User className="w-4 h-4" />
@@ -213,9 +282,16 @@ export default function Wishes() {
                                     <input
                                         type="text"
                                         placeholder="Masukan nama kamu..."
+                                        value={guestName}
+                                        onChange={(e) => setGuestName(e.target.value)}
                                         className="w-full px-4 py-2.5 rounded-xl bg-white/50 border border-rose-100 focus:border-rose-300 focus:ring focus:ring-rose-200 focus:ring-opacity-50 transition-all duration-200 text-gray-700 placeholder-gray-400"
                                         required
                                     />
+                                    {guestName && (
+                                        <p className="text-xs text-gray-500 italic">
+                                            Terdeteksi dari undangan Anda. Anda dapat mengubahnya jika perlu.
+                                        </p>
+                                    )}
                                 </div>
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
@@ -284,6 +360,8 @@ export default function Wishes() {
                                     </div>
                                     <textarea
                                         placeholder="Kirimkan harapan dan doa untuk kedua mempelai..."
+                                        value={newWish}
+                                        onChange={(e) => setNewWish(e.target.value)}
                                         className="w-full h-32 p-4 rounded-xl bg-white/50 border border-rose-100 focus:border-rose-300 focus:ring focus:ring-rose-200 focus:ring-opacity-50 resize-none transition-all duration-200"
                                         required
                                     />
@@ -295,14 +373,20 @@ export default function Wishes() {
                                     <span className="text-sm">Berikan Doa Anda</span>
                                 </div>
                                 <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                                    whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                                     className={`flex items-center space-x-2 px-6 py-2.5 rounded-xl text-white font-medium transition-all duration-200
                     ${isSubmitting
-                                            ? 'bg-gray-300 cursor-not-allowed'
+                                            ? 'bg-gray-400 cursor-not-allowed'
                                             : 'bg-rose-500 hover:bg-rose-600'}`}
                                 >
-                                    <Send className="w-4 h-4" />
+                                    {isSubmitting ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Send className="w-4 h-4" />
+                                    )}
                                     <span>{isSubmitting ? 'Sedang Mengirim...' : 'Kirimkan Doa'}</span>
                                 </motion.button>
                             </div>
