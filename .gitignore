@@ -1,6 +1,7 @@
 # Logs
 #CLAUDE.md
 .wrangler
+wrangler.jsonc
 .claude
 logs
 *.log
