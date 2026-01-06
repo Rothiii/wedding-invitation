@@ -9,32 +9,40 @@ const api = new Hono()
 // Middleware
 app.use('*', logger())
 app.use('*', cors({
-  origin: ['*'],
+  origin: '*',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowHeaders: ['Content-Type', 'Authorization'],
 }))
 
 // Database connection helper
 // In Cloudflare Workers, use Hyperdrive binding (c.env.DB)
-// In Node.js, use the pool from db/index.js
+// In Node.js/Bun, use process.env.DATABASE_URL
+let poolInstance = null
+
 async function getDbClient(c) {
   // Check if running in Cloudflare Workers with Hyperdrive
   if (c.env?.DB) {
     return c.env.DB
   }
 
-  // Check if we have DATABASE_URL in env (for Wrangler dev with .env)
-  if (c.env?.DATABASE_URL) {
-    // In Wrangler dev mode, use node-postgres via dynamic import
+  // Check DATABASE_URL from Hono context env or process.env (for Node.js/Bun)
+  const databaseUrl = c.env?.DATABASE_URL || globalThis.process?.env?.DATABASE_URL
+
+  if (databaseUrl) {
+    // Reuse existing pool if available
+    if (poolInstance) {
+      return poolInstance
+    }
+
     try {
       const pg = await import('pg')
       const { Pool } = pg.default || pg
 
-      // Create a connection pool using DATABASE_URL from env
-      const pool = new Pool({
-        connectionString: c.env.DATABASE_URL,
+      poolInstance = new Pool({
+        connectionString: databaseUrl,
       })
 
-      return pool
+      return poolInstance
     } catch (error) {
       console.error('Failed to create database connection:', error)
       throw new Error('Database connection not available. Please configure Hyperdrive binding or DATABASE_URL.')
@@ -42,7 +50,7 @@ async function getDbClient(c) {
   }
 
   // Throw error if no database connection is available
-  throw new Error('No database connection available. Running in Wrangler dev requires DATABASE_URL in .env or Hyperdrive binding.')
+  throw new Error('No database connection available. Please set DATABASE_URL in .env or configure Hyperdrive binding.')
 }
 
 // API routes are defined below
