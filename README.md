@@ -1,8 +1,10 @@
-# Sakeenah: Modern Islamic Wedding Invitation
+# Wedding Invitation
+
+credit: [@mrofisr](https://github.com/mrofisr).
 
 ![Preview](public/preview.png)
 
-A modern, interactive wedding invitation website built with Vite (React), Tailwind CSS, and Framer Motion. Features a **database-driven multi-tenant system** with backend API for managing multiple weddings. Created by [@mrofisr](https://github.com/mrofisr).
+A modern, interactive wedding invitation website built with Vite (React), Tailwind CSS, and Framer Motion. Features a **database-driven multi-tenant system** with backend API for managing multiple weddings.
 
 ## Features
 - 🎨 Modern design & smooth animations
@@ -546,11 +548,8 @@ This approach ensures that every wedding invitation created not only celebrates 
 ## License
 This project is licensed under the [Apache License 2.0](https://opensource.org/licenses/Apache-2.0). You can use, modify, and distribute it as long as you include the original copyright notice and license.
 
-## Contributing & Support
-Contributions and issue reports are welcome. If this project helped you, give it a ⭐️!
-
 ## Contact
-- GitHub: [@mrofisr](https://github.com/mrofisr)
-- Instagram: [@mrofisr](https://instagram.com/mrofisr)
+- GitHub: [@rothiii](https://github.com/Rothiii)
+- Instagram: [@rafidal._](https://instagram.com/rafidal._)
 
 May Allah guide us all.
