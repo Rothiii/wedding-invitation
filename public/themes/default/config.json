@@ -1,0 +1,15 @@
+{
+  "id": "default",
+  "name": "Default Rose",
+  "colors": {
+    "primary": "#FDA4AF",
+    "secondary": "#FEF3F2",
+    "accent": "#9F1239",
+    "text": "#1F2937",
+    "background": "#FFFFFF"
+  },
+  "fonts": {
+    "heading": "Playfair Display",
+    "body": "Inter"
+  }
+}

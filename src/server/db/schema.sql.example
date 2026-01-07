@@ -28,6 +28,9 @@ CREATE TABLE invitations (
     -- Audio settings (stored as JSON)
     audio JSONB DEFAULT '{"src": "/audio/fulfilling-humming.mp3", "title": "Fulfilling Humming", "autoplay": true, "loop": true}'::jsonb,
 
+    -- Theme
+    theme VARCHAR(50) DEFAULT 'default',
+
     -- Metadata
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

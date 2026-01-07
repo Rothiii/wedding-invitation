@@ -16,17 +16,39 @@
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App.jsx'
 import './index.css'
 import { InvitationProvider } from './context/InvitationContext'
+import {
+  LoginPage,
+  DashboardPage,
+  InvitationsPage,
+  InvitationForm
+} from './pages/admin'
+
+function InvitationApp() {
+  return (
+    <InvitationProvider>
+      <App />
+    </InvitationProvider>
+  )
+}
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <InvitationProvider>
-        <App />
-      </InvitationProvider>
+      <Routes>
+        {/* Admin Routes */}
+        <Route path="/admin" element={<LoginPage />} />
+        <Route path="/admin/dashboard" element={<DashboardPage />} />
+        <Route path="/admin/invitations" element={<InvitationsPage />} />
+        <Route path="/admin/invitations/new" element={<InvitationForm />} />
+        <Route path="/admin/invitations/:uid" element={<InvitationForm />} />
+
+        {/* Invitation Routes */}
+        <Route path="/*" element={<InvitationApp />} />
+      </Routes>
     </BrowserRouter>
   </StrictMode>,
 )

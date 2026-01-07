@@ -1,10 +1,17 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
+import {
+  verifyCredentials,
+  createSession,
+  validateSession,
+  destroySession
+} from './auth.js'
 
 // Create main app and API sub-app
 const app = new Hono()
 const api = new Hono()
+const adminApi = new Hono()
 
 // Middleware
 app.use('*', logger())
@@ -266,8 +273,353 @@ api.get('/:uid/stats', async (c) => {
   }
 })
 
+// ============ Admin API ============
+
+// Auth middleware for admin routes
+adminApi.use('*', async (c, next) => {
+  // Skip auth for login endpoint
+  if (c.req.path === '/api/admin/login') {
+    return next()
+  }
+
+  const authHeader = c.req.header('Authorization')
+  const token = authHeader?.replace('Bearer ', '')
+
+  if (!validateSession(token)) {
+    return c.json({ success: false, error: 'Unauthorized' }, 401)
+  }
+
+  return next()
+})
+
+// Admin login
+adminApi.post('/login', async (c) => {
+  try {
+    const { username, password } = await c.req.json()
+
+    if (!verifyCredentials(username, password)) {
+      return c.json({ success: false, error: 'Invalid credentials' }, 401)
+    }
+
+    const token = createSession(username)
+    return c.json({ success: true, token })
+  } catch (error) {
+    console.error('Login error:', error)
+    return c.json({ success: false, error: 'Login failed' }, 500)
+  }
+})
+
+// Admin logout
+adminApi.post('/logout', async (c) => {
+  const authHeader = c.req.header('Authorization')
+  const token = authHeader?.replace('Bearer ', '')
+
+  if (token) {
+    destroySession(token)
+  }
+
+  return c.json({ success: true, message: 'Logged out' })
+})
+
+// Verify token
+adminApi.get('/verify', async (c) => {
+  return c.json({ success: true, message: 'Token valid' })
+})
+
+// Get all invitations (admin)
+adminApi.get('/invitations', async (c) => {
+  try {
+    const pool = await getDbClient(c)
+    const result = await pool.query(
+      `SELECT id, uid, title, groom_name, bride_name, wedding_date, created_at
+       FROM invitations
+       ORDER BY created_at DESC`
+    )
+
+    return c.json({ success: true, data: result.rows })
+  } catch (error) {
+    console.error('Error fetching invitations:', error)
+    return c.json({ success: false, error: 'Internal server error' }, 500)
+  }
+})
+
+// Get single invitation with full details (admin)
+adminApi.get('/invitations/:uid', async (c) => {
+  const { uid } = c.req.param()
+
+  try {
+    const pool = await getDbClient(c)
+
+    // Get invitation
+    const invitationResult = await pool.query(
+      'SELECT * FROM invitations WHERE uid = $1',
+      [uid]
+    )
+
+    if (invitationResult.rows.length === 0) {
+      return c.json({ success: false, error: 'Invitation not found' }, 404)
+    }
+
+    const invitation = invitationResult.rows[0]
+
+    // Get agenda
+    const agendaResult = await pool.query(
+      'SELECT * FROM agenda WHERE invitation_uid = $1 ORDER BY order_index',
+      [uid]
+    )
+
+    // Get banks
+    const banksResult = await pool.query(
+      'SELECT * FROM banks WHERE invitation_uid = $1 ORDER BY order_index',
+      [uid]
+    )
+
+    return c.json({
+      success: true,
+      data: {
+        ...invitation,
+        agenda: agendaResult.rows,
+        banks: banksResult.rows
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching invitation:', error)
+    return c.json({ success: false, error: 'Internal server error' }, 500)
+  }
+})
+
+// Create invitation (admin)
+adminApi.post('/invitations', async (c) => {
+  try {
+    const pool = await getDbClient(c)
+    const body = await c.req.json()
+
+    const {
+      uid,
+      title,
+      description,
+      groom_name,
+      bride_name,
+      parent_groom,
+      parent_bride,
+      wedding_date,
+      time,
+      location,
+      address,
+      maps_url,
+      maps_embed,
+      og_image,
+      favicon,
+      audio,
+      theme,
+      agenda = [],
+      banks = []
+    } = body
+
+    // Validate required fields
+    if (!uid || !groom_name || !bride_name || !wedding_date) {
+      return c.json({
+        success: false,
+        error: 'UID, groom name, bride name, and wedding date are required'
+      }, 400)
+    }
+
+    // Check if UID already exists
+    const existing = await pool.query(
+      'SELECT uid FROM invitations WHERE uid = $1',
+      [uid]
+    )
+
+    if (existing.rows.length > 0) {
+      return c.json({ success: false, error: 'UID already exists' }, 400)
+    }
+
+    // Insert invitation
+    const result = await pool.query(
+      `INSERT INTO invitations (
+        uid, title, description, groom_name, bride_name,
+        parent_groom, parent_bride, wedding_date, time,
+        location, address, maps_url, maps_embed,
+        og_image, favicon, audio, theme
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+      RETURNING *`,
+      [
+        uid, title, description, groom_name, bride_name,
+        parent_groom, parent_bride, wedding_date, time,
+        location, address, maps_url, maps_embed,
+        og_image, favicon, JSON.stringify(audio), theme
+      ]
+    )
+
+    // Insert agenda items
+    for (let i = 0; i < agenda.length; i++) {
+      const a = agenda[i]
+      await pool.query(
+        `INSERT INTO agenda (invitation_uid, title, date, start_time, end_time, location, address, order_index)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [uid, a.title, a.date, a.start_time, a.end_time, a.location, a.address, i]
+      )
+    }
+
+    // Insert bank accounts
+    for (let i = 0; i < banks.length; i++) {
+      const b = banks[i]
+      await pool.query(
+        `INSERT INTO banks (invitation_uid, bank, account_number, account_name, order_index)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [uid, b.bank, b.account_number, b.account_name, i]
+      )
+    }
+
+    return c.json({ success: true, data: result.rows[0] }, 201)
+  } catch (error) {
+    console.error('Error creating invitation:', error)
+    return c.json({ success: false, error: 'Internal server error' }, 500)
+  }
+})
+
+// Update invitation (admin)
+adminApi.put('/invitations/:uid', async (c) => {
+  const { uid } = c.req.param()
+
+  try {
+    const pool = await getDbClient(c)
+    const body = await c.req.json()
+
+    const {
+      title,
+      description,
+      groom_name,
+      bride_name,
+      parent_groom,
+      parent_bride,
+      wedding_date,
+      time,
+      location,
+      address,
+      maps_url,
+      maps_embed,
+      og_image,
+      favicon,
+      audio,
+      theme,
+      agenda = [],
+      banks = []
+    } = body
+
+    // Update invitation
+    const result = await pool.query(
+      `UPDATE invitations SET
+        title = COALESCE($1, title),
+        description = COALESCE($2, description),
+        groom_name = COALESCE($3, groom_name),
+        bride_name = COALESCE($4, bride_name),
+        parent_groom = COALESCE($5, parent_groom),
+        parent_bride = COALESCE($6, parent_bride),
+        wedding_date = COALESCE($7, wedding_date),
+        time = COALESCE($8, time),
+        location = COALESCE($9, location),
+        address = COALESCE($10, address),
+        maps_url = COALESCE($11, maps_url),
+        maps_embed = COALESCE($12, maps_embed),
+        og_image = COALESCE($13, og_image),
+        favicon = COALESCE($14, favicon),
+        audio = COALESCE($15, audio),
+        theme = COALESCE($16, theme),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE uid = $17
+      RETURNING *`,
+      [
+        title, description, groom_name, bride_name,
+        parent_groom, parent_bride, wedding_date, time,
+        location, address, maps_url, maps_embed,
+        og_image, favicon, audio ? JSON.stringify(audio) : null, theme,
+        uid
+      ]
+    )
+
+    if (result.rows.length === 0) {
+      return c.json({ success: false, error: 'Invitation not found' }, 404)
+    }
+
+    // Update agenda - delete existing and re-insert
+    if (agenda.length > 0) {
+      await pool.query('DELETE FROM agenda WHERE invitation_uid = $1', [uid])
+      for (let i = 0; i < agenda.length; i++) {
+        const a = agenda[i]
+        await pool.query(
+          `INSERT INTO agenda (invitation_uid, title, date, start_time, end_time, location, address, order_index)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [uid, a.title, a.date, a.start_time, a.end_time, a.location, a.address, i]
+        )
+      }
+    }
+
+    // Update banks - delete existing and re-insert
+    if (banks.length > 0) {
+      await pool.query('DELETE FROM banks WHERE invitation_uid = $1', [uid])
+      for (let i = 0; i < banks.length; i++) {
+        const b = banks[i]
+        await pool.query(
+          `INSERT INTO banks (invitation_uid, bank, account_number, account_name, order_index)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [uid, b.bank, b.account_number, b.account_name, i]
+        )
+      }
+    }
+
+    return c.json({ success: true, data: result.rows[0] })
+  } catch (error) {
+    console.error('Error updating invitation:', error)
+    return c.json({ success: false, error: 'Internal server error' }, 500)
+  }
+})
+
+// Delete invitation (admin)
+adminApi.delete('/invitations/:uid', async (c) => {
+  const { uid } = c.req.param()
+
+  try {
+    const pool = await getDbClient(c)
+
+    // Delete related data first
+    await pool.query('DELETE FROM wishes WHERE invitation_uid = $1', [uid])
+    await pool.query('DELETE FROM agenda WHERE invitation_uid = $1', [uid])
+    await pool.query('DELETE FROM banks WHERE invitation_uid = $1', [uid])
+
+    // Delete invitation
+    const result = await pool.query(
+      'DELETE FROM invitations WHERE uid = $1 RETURNING uid',
+      [uid]
+    )
+
+    if (result.rows.length === 0) {
+      return c.json({ success: false, error: 'Invitation not found' }, 404)
+    }
+
+    return c.json({ success: true, message: 'Invitation deleted' })
+  } catch (error) {
+    console.error('Error deleting invitation:', error)
+    return c.json({ success: false, error: 'Internal server error' }, 500)
+  }
+})
+
+// Get available themes
+adminApi.get('/themes', async (c) => {
+  // For now, return hardcoded themes - later can be made dynamic
+  const themes = [
+    { id: 'default', name: 'Default Rose', preview: '/themes/default/preview.jpg' },
+    { id: 'elegant', name: 'Elegant Gold', preview: '/themes/elegant/preview.jpg' },
+    { id: 'rustic', name: 'Rustic Green', preview: '/themes/rustic/preview.jpg' },
+    { id: 'modern', name: 'Modern Minimal', preview: '/themes/modern/preview.jpg' }
+  ]
+
+  return c.json({ success: true, data: themes })
+})
+
 // Mount API routes under /api prefix
 app.route('/api', api)
+app.route('/api/admin', adminApi)
 
 // Export for Cloudflare Workers
 export default app
