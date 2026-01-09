@@ -942,7 +942,20 @@ public/themes/
 
 #### Link Modes
 
-**Mode 1: Private (Secure Guest Links)**
+**Mode 1: Public (Open Links) - Paket Basic**
+```
+Format: https://sakeenah.id/{invitation-uid}?to={guest-name}
+Contoh: https://sakeenah.id/ahmad-fatimah-2025?to=Budi Santoso
+
+Behavior:
+- Nama tamu langsung di URL (readable)
+- Siapa saja bisa ubah nama di URL
+- Tidak ada validasi server
+- Cocok untuk disebar di sosial media
+- Mudah dibagikan dan dimodifikasi
+```
+
+**Mode 2: Private (Secure Guest Links) - Paket Premium**
 ```
 Format: https://sakeenah.id/{invitation-uid}?g={guest-code}
 Contoh: https://sakeenah.id/ahmad-fatimah-2025?g=XK7M2P
@@ -950,21 +963,10 @@ Contoh: https://sakeenah.id/ahmad-fatimah-2025?g=XK7M2P
 Behavior:
 - Kode unik per tamu (6-8 karakter)
 - Validasi kode di server
-- Track siapa yang buka
-- Jika kode salah → tampilkan pesan error dengan nama tamu yang seharusnya
+- Track siapa yang buka, berapa kali
+- Jika kode salah → tampilkan pesan error
 - "Link ini untuk [Nama Tamu]. Jika Anda bukan [Nama Tamu], silakan hubungi pengantin."
-```
-
-**Mode 2: Public (Open Links)**
-```
-Format: https://sakeenah.id/{invitation-uid}?to={guest-name-base64}
-Contoh: https://sakeenah.id/ahmad-fatimah-2025?to=QnVkaSBTYW50b3Nv
-
-Behavior:
-- Nama tamu di-encode base64
-- Siapa saja bisa ubah nama di URL
-- Tidak ada validasi
-- Cocok untuk disebar di sosial media
+- Lebih eksklusif, cocok untuk acara private
 ```
 
 ### 2.2 Admin Features for Guest Management
@@ -1404,8 +1406,90 @@ Mohon diproses ya. Terima kasih! 🙏`
 - React Router v7
 - Tailwind CSS
 - Framer Motion (animations)
-- React Query (data fetching)
-- Zustand (state management - optional)
+- React Query / TanStack Query (server state & data fetching)
+- React Context + useState (client state - sudah cukup, tidak perlu Redux)
+```
+
+#### Kenapa Tidak Pakai Redux?
+
+| Aspek | Redux | Context + React Query |
+|-------|-------|----------------------|
+| Kompleksitas | Tinggi (actions, reducers, store) | Rendah |
+| Boilerplate | Banyak | Minimal |
+| Learning curve | Steep | Mudah |
+| Cocok untuk | App sangat besar, state kompleks | App medium, state straightforward |
+
+**State Management Strategy:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     STATE MANAGEMENT                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  SERVER STATE (data dari API)          CLIENT STATE         │
+│  ─────────────────────────────         ────────────────     │
+│  React Query / TanStack Query          React Context        │
+│                                                              │
+│  • Invitation data                     • Guest info (URL)   │
+│  • Wishes list                         • Auth token         │
+│  • Guest list                          • UI state (modal)   │
+│  • Theme config                        • Form state         │
+│  • Site settings                                            │
+│                                                              │
+│  Benefits:                             Benefits:            │
+│  • Auto caching                        • Simple & native    │
+│  • Background refetch                  • No extra library   │
+│  • Loading/error states                • Familiar API       │
+│  • Optimistic updates                                       │
+│  • Pagination support                                       │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### React Query Implementation Plan
+
+```typescript
+// src/hooks/useInvitation.ts
+import { useQuery } from '@tanstack/react-query'
+
+export function useInvitationQuery(uid: string) {
+  return useQuery({
+    queryKey: ['invitation', uid],
+    queryFn: () => fetchInvitation(uid),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!uid,
+  })
+}
+
+// src/hooks/useWishes.ts
+export function useWishesQuery(uid: string) {
+  return useQuery({
+    queryKey: ['wishes', uid],
+    queryFn: () => fetchWishes(uid),
+    staleTime: 30 * 1000, // 30 seconds (more frequent updates)
+  })
+}
+
+// src/hooks/useCreateWish.ts
+export function useCreateWish(uid: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data) => createWish(uid, data),
+    onSuccess: () => {
+      // Invalidate wishes cache to refetch
+      queryClient.invalidateQueries(['wishes', uid])
+    },
+  })
+}
+```
+
+#### Context Usage (Client State Only)
+
+```typescript
+// src/context/GuestContext.tsx - for URL-based guest info
+// src/context/AuthContext.tsx - for admin auth state
+// src/context/ThemeContext.tsx - for theme customization state
 ```
 
 ### Backend Stack
