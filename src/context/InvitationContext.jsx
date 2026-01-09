@@ -6,14 +6,16 @@ const InvitationContext = createContext(null);
 
 /**
  * InvitationProvider component
- * Provides the invitation UID and config data throughout the app
+ * Provides the invitation UID, guest info, and config data throughout the app
  *
- * The UID can be obtained from:
- * 1. URL path: /couple-name-2025
- * 2. URL query parameter: ?uid=couple-name-2025 (legacy support)
- * 3. Environment variable: VITE_INVITATION_UID
+ * URL Formats:
+ * 1. Public Mode: /{uid}?to=Guest Name
+ *    - Guest name langsung di URL, mudah diubah
+ *    - Untuk paket Basic
  *
- * The config is fetched from the API based on the UID
+ * 2. Private Mode: /{uid}?g=XK7M2P
+ *    - Kode unik per tamu, divalidasi server
+ *    - Untuk paket Premium
  *
  * @example
  * <InvitationProvider>
@@ -23,33 +25,46 @@ const InvitationContext = createContext(null);
 export function InvitationProvider({ children }) {
   const location = useLocation();
 
+  // Extract UID from URL path
   const invitationUid = useMemo(() => {
-    // 1. Try to get UID from URL path (e.g., /rifqi-dina-2025)
     const pathSegments = location.pathname.split('/').filter(Boolean);
     if (pathSegments.length > 0) {
-      // First segment is the UID
       return pathSegments[0];
     }
-
-    // 2. Try to get UID from URL query parameter (legacy support)
-    const urlParams = new URLSearchParams(location.search);
-    const uidFromUrl = urlParams.get('uid');
-
-    if (uidFromUrl) {
-      return uidFromUrl;
-    }
-
-    // 3. Fallback to environment variable
-    const uidFromEnv = import.meta.env.VITE_INVITATION_UID;
-
-    if (uidFromEnv) {
-      return uidFromEnv;
-    }
-
-    // If no UID is provided, log a warning
-    console.warn('No invitation UID found. Please provide /your-uid in the URL or set VITE_INVITATION_UID in .env');
     return null;
-  }, [location.pathname, location.search]);
+  }, [location.pathname]);
+
+  // Extract guest info from query params
+  const guestInfo = useMemo(() => {
+    const urlParams = new URLSearchParams(location.search);
+
+    // Mode Public: ?to=Guest Name (langsung, tidak di-encode)
+    const guestName = urlParams.get('to');
+    if (guestName) {
+      return {
+        mode: 'public',
+        name: guestName,
+        code: null
+      };
+    }
+
+    // Mode Private: ?g=XK7M2P (kode unik)
+    const guestCode = urlParams.get('g');
+    if (guestCode) {
+      return {
+        mode: 'private',
+        name: null, // Will be fetched from server
+        code: guestCode
+      };
+    }
+
+    // No guest info
+    return {
+      mode: 'public',
+      name: null,
+      code: null
+    };
+  }, [location.search]);
 
   const [config, setConfig] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,7 +97,7 @@ export function InvitationProvider({ children }) {
   }, [invitationUid]);
 
   return (
-    <InvitationContext.Provider value={{ uid: invitationUid, config, isLoading, error }}>
+    <InvitationContext.Provider value={{ uid: invitationUid, config, isLoading, error, guest: guestInfo }}>
       {children}
     </InvitationContext.Provider>
   );

@@ -18,10 +18,9 @@ import { useState, useEffect } from 'react';
 import { formatEventDate } from '@/lib/formatEventDate';
 import { useInvitation } from '@/context/InvitationContext';
 import { fetchWishes, createWish } from '@/services/api';
-import { safeBase64 } from '@/lib/base64';
 
 export default function Wishes() {
-    const { uid } = useInvitation();
+    const { uid, guest } = useInvitation();
     const [showConfetti, setShowConfetti] = useState(false);
     const [newWish, setNewWish] = useState('');
     const [guestName, setGuestName] = useState('');
@@ -32,21 +31,12 @@ export default function Wishes() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Get guest name from URL parameter
+    // Initialize guest name from context (supports both ?to=Name and ?g=CODE modes)
     useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const guestParam = urlParams.get('guest');
-
-        if (guestParam) {
-            try {
-                const decodedName = safeBase64.decode(guestParam);
-                setGuestName(decodedName);
-            } catch (error) {
-                console.error('Error decoding guest name:', error);
-                setGuestName('');
-            }
+        if (guest?.name) {
+            setGuestName(guest.name);
         }
-    }, []);
+    }, [guest?.name]);
 
     const options = [
         { value: 'ATTENDING', label: 'Ya, saya akan hadir' },

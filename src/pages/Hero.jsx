@@ -3,26 +3,14 @@ import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react';
 import { useConfig } from '@/hooks/useConfig';
 import { formatEventDate } from '@/lib/formatEventDate';
-import { safeBase64 } from '@/lib/base64';
+import { useInvitation } from '@/context/InvitationContext';
 
 export default function Hero() {
     const config = useConfig(); // Use hook to get config from API or fallback to static
-    const [guestName, setGuestName] = useState('');
+    const { guest } = useInvitation();
 
-    useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const guestParam = urlParams.get('guest');
-
-        if (guestParam) {
-            try {
-                const decodedName = safeBase64.decode(guestParam);
-                setGuestName(decodedName);
-            } catch (error) {
-                console.error('Error decoding guest name:', error);
-                setGuestName('');
-            }
-        }
-    }, []);
+    // Get guest name from context (supports both ?to=Name and ?g=CODE modes)
+    const guestName = guest?.name || '';
 
     const CountdownTimer = ({ targetDate }) => {
         const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
