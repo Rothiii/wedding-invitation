@@ -26,6 +26,7 @@ import {
   InvitationsPage,
   InvitationForm
 } from './pages/admin'
+import { PublicLandingPage } from './pages/public'
 
 function InvitationApp() {
   return (
@@ -39,6 +40,10 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
+        {/* Public Landing Page */}
+        <Route path="/" element={<PublicLandingPage />} />
+        <Route path="/katalog" element={<PublicLandingPage />} />
+
         {/* Admin Routes */}
         <Route path="/admin" element={<LoginPage />} />
         <Route path="/admin/dashboard" element={<DashboardPage />} />
@@ -46,8 +51,8 @@ createRoot(document.getElementById('root')).render(
         <Route path="/admin/invitations/new" element={<InvitationForm />} />
         <Route path="/admin/invitations/:uid" element={<InvitationForm />} />
 
-        {/* Invitation Routes */}
-        <Route path="/*" element={<InvitationApp />} />
+        {/* Invitation Routes - matches /:uid pattern */}
+        <Route path="/:uid/*" element={<InvitationApp />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
