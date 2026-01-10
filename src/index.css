@@ -11,6 +11,24 @@
 
 @layer base {
   :root {
+    /* Theme Colors - these are overwritten by ThemeProvider */
+    --color-primary: #FDA4AF;
+    --color-primary-light: #FECDD3;
+    --color-primary-dark: #FB7185;
+    --color-secondary: #FEF3F2;
+    --color-accent: #9F1239;
+    --color-text: #1F2937;
+    --color-text-light: #6B7280;
+    --color-text-muted: #9CA3AF;
+    --color-background: #FFFFFF;
+    --color-background-alt: #FFF1F2;
+    --color-border: #FDE2E4;
+
+    /* Theme Fonts */
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-accent: 'Great Vibes', cursive;
+
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;

@@ -1,0 +1,61 @@
+{
+  "id": "elegant-rose",
+  "name": "Elegant Rose",
+  "category": "elegant",
+  "description": "Tema elegan dengan sentuhan warna rose yang romantis",
+  "price": 150000,
+  "isBestSeller": true,
+  "isNew": false,
+
+  "colors": {
+    "primary": "#FDA4AF",
+    "primaryLight": "#FECDD3",
+    "primaryDark": "#FB7185",
+    "secondary": "#FEF3F2",
+    "accent": "#9F1239",
+    "text": "#1F2937",
+    "textLight": "#6B7280",
+    "textMuted": "#9CA3AF",
+    "background": "#FFFFFF",
+    "backgroundAlt": "#FFF1F2",
+    "border": "#FDE2E4"
+  },
+
+  "fonts": {
+    "heading": {
+      "family": "Playfair Display",
+      "weights": [400, 600, 700],
+      "style": "serif"
+    },
+    "body": {
+      "family": "Inter",
+      "weights": [400, 500, 600],
+      "style": "sans-serif"
+    },
+    "accent": {
+      "family": "Great Vibes",
+      "weights": [400],
+      "style": "cursive"
+    }
+  },
+
+  "ornaments": {
+    "cornerTopLeft": "/themes/elegant-rose/assets/ornaments/corner-tl.svg",
+    "cornerTopRight": "/themes/elegant-rose/assets/ornaments/corner-tr.svg",
+    "divider": "/themes/elegant-rose/assets/ornaments/divider.svg",
+    "frame": "/themes/elegant-rose/assets/ornaments/frame.svg"
+  },
+
+  "backgrounds": {
+    "hero": "/themes/elegant-rose/assets/backgrounds/hero.jpg",
+    "pattern": "/themes/elegant-rose/assets/backgrounds/pattern.svg"
+  },
+
+  "animations": {
+    "landing": "fade-scale",
+    "hero": "parallax-scroll",
+    "sections": "fade-in-view",
+    "gallery": "masonry-fade",
+    "countdown": "flip-clock"
+  }
+}

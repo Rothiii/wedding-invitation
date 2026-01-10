@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { fetchInvitation } from '@/services/api';
+import { fetchInvitation, validateGuestCode } from '@/services/api';
 
 const InvitationContext = createContext(null);
 
@@ -67,9 +67,12 @@ export function InvitationProvider({ children }) {
   }, [location.search]);
 
   const [config, setConfig] = useState(null);
+  const [guest, setGuest] = useState(guestInfo);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [guestError, setGuestError] = useState(null);
 
+  // Load invitation config
   useEffect(() => {
     if (!invitationUid) {
       setIsLoading(false);
@@ -96,8 +99,55 @@ export function InvitationProvider({ children }) {
     loadConfig();
   }, [invitationUid]);
 
+  // Validate guest code for private mode
+  useEffect(() => {
+    if (guestInfo.mode !== 'private' || !guestInfo.code) {
+      return;
+    }
+
+    const validateGuest = async () => {
+      try {
+        const response = await validateGuestCode(guestInfo.code);
+        if (response.success && response.data) {
+          setGuest({
+            ...guestInfo,
+            name: response.data.name,
+            id: response.data.id,
+            maxPersons: response.data.maxPersons,
+            validated: true,
+          });
+          setGuestError(null);
+        } else {
+          setGuestError('Kode tamu tidak valid');
+          setGuest({ ...guestInfo, validated: false });
+        }
+      } catch (err) {
+        console.error('Error validating guest code:', err);
+        setGuestError('Kode tamu tidak ditemukan');
+        setGuest({ ...guestInfo, validated: false });
+      }
+    };
+
+    validateGuest();
+  }, [guestInfo]);
+
+  // Update guest when guestInfo changes (for public mode)
+  useEffect(() => {
+    if (guestInfo.mode === 'public') {
+      setGuest(guestInfo);
+    }
+  }, [guestInfo]);
+
   return (
-    <InvitationContext.Provider value={{ uid: invitationUid, config, isLoading, error, guest: guestInfo }}>
+    <InvitationContext.Provider value={{
+      uid: invitationUid,
+      config,
+      isLoading,
+      error,
+      guest,
+      guestError,
+      isPrivateMode: config?.guestMode === 'private',
+    }}>
       {children}
     </InvitationContext.Provider>
   );

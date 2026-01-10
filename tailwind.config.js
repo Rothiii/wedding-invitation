@@ -19,12 +19,26 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			fontFamily: {
-				serif: [
-					'Playfair Display',
-					'serif'
-				]
+				heading: ['var(--font-heading)', 'serif'],
+				body: ['var(--font-body)', 'sans-serif'],
+				accent: ['var(--font-accent)', 'cursive'],
+				serif: ['Playfair Display', 'serif'],
 			},
 			colors: {
+				// Theme colors from CSS variables
+				theme: {
+					primary: 'var(--color-primary)',
+					'primary-light': 'var(--color-primary-light)',
+					'primary-dark': 'var(--color-primary-dark)',
+					secondary: 'var(--color-secondary)',
+					accent: 'var(--color-accent)',
+					text: 'var(--color-text)',
+					'text-light': 'var(--color-text-light)',
+					'text-muted': 'var(--color-text-muted)',
+					background: 'var(--color-background)',
+					'background-alt': 'var(--color-background-alt)',
+					border: 'var(--color-border)',
+				},
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				card: {

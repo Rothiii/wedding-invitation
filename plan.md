@@ -1660,13 +1660,13 @@ sakeenah/
 
 ### Sprint 1: Foundation
 - [x] Admin Dashboard Basic (selesai)
-- [ ] Backend Refactor (Drizzle + Clean Architecture)
-- [ ] Database migration
+- [x] Backend Refactor (Drizzle + Clean Architecture)
+- [x] Database migration
 
 ### Sprint 2: Core Features
-- [ ] Theme System Refactor
-- [ ] Animation System Basic
-- [ ] Guest Management (Private/Public mode)
+- [x] Theme System Refactor
+- [x] Animation System Basic
+- [x] Guest Management (Private/Public mode)
 
 ### Sprint 3: User Experience
 - [ ] Import/Export Excel

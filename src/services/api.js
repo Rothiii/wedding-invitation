@@ -87,3 +87,18 @@ export async function fetchInvitation(uid) {
   }
   return response.json();
 }
+
+/**
+ * Validate guest code (for private mode)
+ * Also records that the link was opened
+ * @param {string} code - Guest code
+ * @returns {Promise<object>} Response with guest data
+ */
+export async function validateGuestCode(code) {
+  const response = await fetch(`${API_URL}/api/guest/validate/${code}`);
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Invalid guest code');
+  }
+  return response.json();
+}

@@ -1,0 +1,61 @@
+{
+  "id": "rustic-garden",
+  "name": "Rustic Garden",
+  "category": "rustic",
+  "description": "Tema natural dengan nuansa taman yang hangat",
+  "price": 150000,
+  "isBestSeller": false,
+  "isNew": true,
+
+  "colors": {
+    "primary": "#84CC16",
+    "primaryLight": "#BEF264",
+    "primaryDark": "#65A30D",
+    "secondary": "#F7FEE7",
+    "accent": "#365314",
+    "text": "#1C1917",
+    "textLight": "#57534E",
+    "textMuted": "#A8A29E",
+    "background": "#FEFCE8",
+    "backgroundAlt": "#FEF9C3",
+    "border": "#D9F99D"
+  },
+
+  "fonts": {
+    "heading": {
+      "family": "Cormorant Garamond",
+      "weights": [400, 600, 700],
+      "style": "serif"
+    },
+    "body": {
+      "family": "Lato",
+      "weights": [400, 500, 600],
+      "style": "sans-serif"
+    },
+    "accent": {
+      "family": "Sacramento",
+      "weights": [400],
+      "style": "cursive"
+    }
+  },
+
+  "ornaments": {
+    "cornerTopLeft": "/themes/rustic-garden/assets/ornaments/corner-tl.svg",
+    "cornerTopRight": "/themes/rustic-garden/assets/ornaments/corner-tr.svg",
+    "divider": "/themes/rustic-garden/assets/ornaments/divider.svg",
+    "frame": "/themes/rustic-garden/assets/ornaments/frame.svg"
+  },
+
+  "backgrounds": {
+    "hero": "/themes/rustic-garden/assets/backgrounds/hero.jpg",
+    "pattern": "/themes/rustic-garden/assets/backgrounds/pattern.svg"
+  },
+
+  "animations": {
+    "landing": "slide-up",
+    "hero": "floating-elements",
+    "sections": "slide-from-side",
+    "gallery": "masonry-fade",
+    "countdown": "slide-digits"
+  }
+}

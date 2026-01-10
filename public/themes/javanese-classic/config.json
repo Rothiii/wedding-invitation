@@ -1,0 +1,61 @@
+{
+  "id": "javanese-classic",
+  "name": "Javanese Classic",
+  "category": "traditional",
+  "description": "Tema tradisional Jawa dengan sentuhan klasik yang anggun",
+  "price": 200000,
+  "isBestSeller": false,
+  "isNew": true,
+
+  "colors": {
+    "primary": "#92400E",
+    "primaryLight": "#D97706",
+    "primaryDark": "#78350F",
+    "secondary": "#FEF3C7",
+    "accent": "#451A03",
+    "text": "#1C1917",
+    "textLight": "#57534E",
+    "textMuted": "#A8A29E",
+    "background": "#FFFBEB",
+    "backgroundAlt": "#FDE68A",
+    "border": "#FCD34D"
+  },
+
+  "fonts": {
+    "heading": {
+      "family": "Cinzel",
+      "weights": [400, 600, 700],
+      "style": "serif"
+    },
+    "body": {
+      "family": "Crimson Text",
+      "weights": [400, 600],
+      "style": "serif"
+    },
+    "accent": {
+      "family": "Arizonia",
+      "weights": [400],
+      "style": "cursive"
+    }
+  },
+
+  "ornaments": {
+    "cornerTopLeft": "/themes/javanese-classic/assets/ornaments/corner-tl.svg",
+    "cornerTopRight": "/themes/javanese-classic/assets/ornaments/corner-tr.svg",
+    "divider": "/themes/javanese-classic/assets/ornaments/divider.svg",
+    "frame": "/themes/javanese-classic/assets/ornaments/frame.svg"
+  },
+
+  "backgrounds": {
+    "hero": "/themes/javanese-classic/assets/backgrounds/hero.jpg",
+    "pattern": "/themes/javanese-classic/assets/backgrounds/pattern.svg"
+  },
+
+  "animations": {
+    "landing": "curtain-reveal",
+    "hero": "parallax-scroll",
+    "sections": "stagger-children",
+    "gallery": "carousel-3d",
+    "countdown": "flip-clock"
+  }
+}

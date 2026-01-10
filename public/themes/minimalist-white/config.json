@@ -1,0 +1,61 @@
+{
+  "id": "minimalist-white",
+  "name": "Minimalist White",
+  "category": "modern",
+  "description": "Tema minimalis dengan desain bersih dan elegan",
+  "price": 100000,
+  "isBestSeller": false,
+  "isNew": false,
+
+  "colors": {
+    "primary": "#18181B",
+    "primaryLight": "#3F3F46",
+    "primaryDark": "#09090B",
+    "secondary": "#F4F4F5",
+    "accent": "#71717A",
+    "text": "#18181B",
+    "textLight": "#52525B",
+    "textMuted": "#A1A1AA",
+    "background": "#FFFFFF",
+    "backgroundAlt": "#FAFAFA",
+    "border": "#E4E4E7"
+  },
+
+  "fonts": {
+    "heading": {
+      "family": "Montserrat",
+      "weights": [400, 600, 700],
+      "style": "sans-serif"
+    },
+    "body": {
+      "family": "Open Sans",
+      "weights": [400, 500, 600],
+      "style": "sans-serif"
+    },
+    "accent": {
+      "family": "Pinyon Script",
+      "weights": [400],
+      "style": "cursive"
+    }
+  },
+
+  "ornaments": {
+    "cornerTopLeft": "/themes/minimalist-white/assets/ornaments/corner-tl.svg",
+    "cornerTopRight": "/themes/minimalist-white/assets/ornaments/corner-tr.svg",
+    "divider": "/themes/minimalist-white/assets/ornaments/divider.svg",
+    "frame": "/themes/minimalist-white/assets/ornaments/frame.svg"
+  },
+
+  "backgrounds": {
+    "hero": "/themes/minimalist-white/assets/backgrounds/hero.jpg",
+    "pattern": "/themes/minimalist-white/assets/backgrounds/pattern.svg"
+  },
+
+  "animations": {
+    "landing": "fade-scale",
+    "hero": "text-reveal",
+    "sections": "fade-in-view",
+    "gallery": "lightbox-zoom",
+    "countdown": "pulse-glow"
+  }
+}

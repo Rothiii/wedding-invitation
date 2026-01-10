@@ -4,7 +4,7 @@ import { formatEventDate } from '@/lib/formatEventDate';
 import { motion } from 'framer-motion';
 import { Calendar, Clock } from 'lucide-react';
 
-const LandingPage = ({ onOpenInvitation }) => {
+const LandingPage = ({ onOpenInvitation, guestName }) => {
   const config = useConfig(); // Use hook to get config from API or fallback to static
 
   return (
@@ -57,6 +57,19 @@ const LandingPage = ({ onOpenInvitation }) => {
               </p>
             </div>
           </motion.div>
+
+          {/* Guest Name (if available) */}
+          {guestName && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-center mb-4"
+            >
+              <p className="text-sm text-gray-500">Kepada Yth.</p>
+              <p className="text-lg font-medium text-gray-700">{guestName}</p>
+            </motion.div>
+          )}
 
           {/* Couple Names */}
           <motion.div

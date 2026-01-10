@@ -22,6 +22,8 @@ import MainContent from '@/pages/MainContent';
 import LandingPage from '@/pages/LandingPage';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { useInvitation } from '@/context/InvitationContext';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { AnimationProvider } from '@/context/AnimationContext';
 import staticConfig from '@/config/config';
 
 /**
@@ -44,10 +46,13 @@ import staticConfig from '@/config/config';
  */
 function App() {
   const [isInvitationOpen, setIsInvitationOpen] = useState(false);
-  const { config, isLoading, error } = useInvitation();
+  const { config, isLoading, error, guest, guestError, isPrivateMode } = useInvitation();
 
   // Use config from API if available, otherwise fall back to static config
   const activeConfig = config || staticConfig.data;
+
+  // Get theme ID from config
+  const themeId = activeConfig?.theme || 'elegant-rose';
 
   // Show loading state
   if (isLoading) {
@@ -75,46 +80,69 @@ function App() {
     );
   }
 
+  // Show guest error for private mode with invalid code
+  if (isPrivateMode && guestError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 to-pink-50">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="text-rose-500 text-6xl mb-4">🔒</div>
+          <h1 className="text-2xl font-serif text-gray-800 mb-2">Akses Terbatas</h1>
+          <p className="text-gray-600 mb-4">{guestError}</p>
+          <p className="text-sm text-gray-500">
+            Link ini untuk tamu yang diundang. Silakan hubungi penyelenggara jika Anda yakin ini adalah kesalahan.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <HelmetProvider>
-      <Helmet>
-        {/* Primary Meta Tags */}
-        <title>{activeConfig.title}</title>
-        <meta name="title" content={activeConfig.title} />
-        <meta name="description" content={activeConfig.description} />
+    <ThemeProvider initialThemeId={themeId}>
+      <AnimationProvider>
+        <HelmetProvider>
+          <Helmet>
+            {/* Primary Meta Tags */}
+            <title>{activeConfig.title}</title>
+            <meta name="title" content={activeConfig.title} />
+            <meta name="description" content={activeConfig.description} />
 
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={window.location.href} />
-        <meta property="og:title" content={activeConfig.title} />
-        <meta property="og:description" content={activeConfig.description} />
-        <meta property="og:image" content={activeConfig.ogImage} />
+            {/* Open Graph / Facebook */}
+            <meta property="og:type" content="website" />
+            <meta property="og:url" content={window.location.href} />
+            <meta property="og:title" content={activeConfig.title} />
+            <meta property="og:description" content={activeConfig.description} />
+            <meta property="og:image" content={activeConfig.ogImage} />
 
-        {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={window.location.href} />
-        <meta property="twitter:title" content={activeConfig.title} />
-        <meta property="twitter:description" content={activeConfig.description} />
-        <meta property="twitter:image" content={activeConfig.ogImage} />
+            {/* Twitter */}
+            <meta property="twitter:card" content="summary_large_image" />
+            <meta property="twitter:url" content={window.location.href} />
+            <meta property="twitter:title" content={activeConfig.title} />
+            <meta property="twitter:description" content={activeConfig.description} />
+            <meta property="twitter:image" content={activeConfig.ogImage} />
 
-        {/* Favicon */}
-        <link rel="icon" type="image/x-icon" href={activeConfig.favicon} />
+            {/* Favicon */}
+            <link rel="icon" type="image/x-icon" href={activeConfig.favicon} />
 
-        {/* Additional Meta Tags */}
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="theme-color" content="#FDA4AF" /> {/* Rose-300 color */}
-      </Helmet>
+            {/* Additional Meta Tags */}
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <meta name="theme-color" content="#FDA4AF" />
+          </Helmet>
 
-      <AnimatePresence mode='wait'>
-        {!isInvitationOpen ? (
-          <LandingPage onOpenInvitation={() => setIsInvitationOpen(true)} />
-        ) : (
-          <Layout>
-            <MainContent />
-          </Layout>
-        )}
-      </AnimatePresence>
-    </HelmetProvider>
+          <AnimatePresence mode='wait'>
+            {!isInvitationOpen ? (
+              <LandingPage
+                onOpenInvitation={() => setIsInvitationOpen(true)}
+                guestName={guest?.name}
+              />
+            ) : (
+              <Layout>
+                <MainContent />
+              </Layout>
+            )}
+          </AnimatePresence>
+        </HelmetProvider>
+      </AnimationProvider>
+    </ThemeProvider>
   );
 }
 
