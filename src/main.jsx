@@ -26,7 +26,7 @@ import {
   InvitationsPage,
   InvitationForm
 } from './pages/admin'
-import { PublicLandingPage } from './pages/public'
+import { PublicLandingPage, ThemeCatalog, ThemePreview } from './pages/public'
 
 function InvitationApp() {
   return (
@@ -42,7 +42,8 @@ createRoot(document.getElementById('root')).render(
       <Routes>
         {/* Public Landing Page */}
         <Route path="/" element={<PublicLandingPage />} />
-        <Route path="/katalog" element={<PublicLandingPage />} />
+        <Route path="/katalog" element={<ThemeCatalog />} />
+        <Route path="/preview/:themeId" element={<ThemePreview />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={<LoginPage />} />

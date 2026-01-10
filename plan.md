@@ -1675,10 +1675,10 @@ sakeenah/
 - [x] Onboarding Wizard
 
 ### Sprint 4: Landing Page
-- [ ] Public Landing Page
+- [x] Public Landing Page
 - [ ] Site Settings Admin
-- [ ] Theme Catalog & Preview
-- [ ] Trust Signals & Testimonials
+- [x] Theme Catalog & Preview
+- [x] Trust Signals & Testimonials
 
 ### Sprint 5: Polish
 - [ ] Analytics Dashboard
