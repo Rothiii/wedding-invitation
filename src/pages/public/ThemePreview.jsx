@@ -86,6 +86,40 @@ const THEMES = {
       'Animasi reveal tradisional',
     ],
   },
+  'ocean-blue': {
+    id: 'ocean-blue',
+    name: 'Ocean Blue',
+    category: 'modern',
+    price: 150000,
+    colors: ['#0EA5E9', '#7DD3FC', '#F0F9FF'],
+    isNew: true,
+    description: 'Tema modern dengan nuansa biru laut yang menenangkan dan elegan, cocok untuk beach wedding atau pasangan yang menyukai warna biru.',
+    features: [
+      'Animasi gelombang laut',
+      'Ornamen nautical',
+      'Font serif elegan',
+      'Background wave pattern',
+      'Countdown timer animasi',
+      'Gallery dengan lightbox',
+    ],
+  },
+  'golden-luxury': {
+    id: 'golden-luxury',
+    name: 'Golden Luxury',
+    category: 'luxury',
+    price: 250000,
+    colors: ['#D4AF37', '#F5E6A3', '#FFFBF5'],
+    isNew: true,
+    description: 'Tema mewah dengan sentuhan emas yang glamor dan berkelas, sempurna untuk pernikahan dengan kesan premium.',
+    features: [
+      'Animasi pembukaan mewah',
+      'Ornamen emas detail',
+      'Font klasik premium',
+      'Background marble texture',
+      '3D carousel gallery',
+      'Efek glitter/sparkle',
+    ],
+  },
 }
 
 const DEVICE_SIZES = {

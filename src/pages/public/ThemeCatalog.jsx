@@ -70,6 +70,26 @@ const ALL_THEMES = [
     isNew: false,
     features: ['Ornamen Jawa', 'Batik Pattern', 'Nuansa Tradisional'],
   },
+  {
+    id: 'ocean-blue',
+    name: 'Ocean Blue',
+    category: 'modern',
+    price: 150000,
+    colors: ['#0EA5E9', '#7DD3FC', '#F0F9FF'],
+    isBestSeller: false,
+    isNew: true,
+    features: ['Nuansa Laut', 'Ornamen Nautical', 'Wave Animation'],
+  },
+  {
+    id: 'golden-luxury',
+    name: 'Golden Luxury',
+    category: 'luxury',
+    price: 250000,
+    colors: ['#D4AF37', '#F5E6A3', '#FFFBF5'],
+    isBestSeller: false,
+    isNew: true,
+    features: ['Ornamen Emas', 'Marble Texture', '3D Gallery'],
+  },
 ]
 
 const CATEGORIES = [
@@ -78,6 +98,7 @@ const CATEGORIES = [
   { id: 'modern', label: 'Modern' },
   { id: 'nature', label: 'Nature' },
   { id: 'traditional', label: 'Traditional' },
+  { id: 'luxury', label: 'Luxury' },
 ]
 
 export default function ThemeCatalog() {

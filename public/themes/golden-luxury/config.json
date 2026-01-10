@@ -1,0 +1,74 @@
+{
+  "id": "golden-luxury",
+  "name": "Golden Luxury",
+  "category": "luxury",
+  "description": "Tema mewah dengan sentuhan emas yang glamor dan berkelas",
+  "price": 250000,
+  "isBestSeller": false,
+  "isNew": true,
+
+  "colors": {
+    "primary": "#D4AF37",
+    "primaryLight": "#F5E6A3",
+    "primaryDark": "#B8860B",
+    "secondary": "#FFFBEB",
+    "accent": "#92400E",
+    "text": "#1C1917",
+    "textLight": "#44403C",
+    "textMuted": "#78716C",
+    "background": "#FFFBF5",
+    "backgroundAlt": "#FEF3C7",
+    "border": "#F5E6A3"
+  },
+
+  "fonts": {
+    "heading": {
+      "family": "Cinzel",
+      "weights": [400, 500, 600, 700],
+      "style": "serif"
+    },
+    "body": {
+      "family": "Lato",
+      "weights": [300, 400, 700],
+      "style": "sans-serif"
+    },
+    "accent": {
+      "family": "Tangerine",
+      "weights": [400, 700],
+      "style": "cursive"
+    }
+  },
+
+  "ornaments": {
+    "cornerTopLeft": "/themes/golden-luxury/assets/ornaments/corner-tl.svg",
+    "cornerTopRight": "/themes/golden-luxury/assets/ornaments/corner-tr.svg",
+    "cornerBottomLeft": "/themes/golden-luxury/assets/ornaments/corner-bl.svg",
+    "cornerBottomRight": "/themes/golden-luxury/assets/ornaments/corner-br.svg",
+    "divider": "/themes/golden-luxury/assets/ornaments/divider.svg",
+    "frame": "/themes/golden-luxury/assets/ornaments/frame.svg",
+    "flourish": "/themes/golden-luxury/assets/ornaments/flourish.svg"
+  },
+
+  "backgrounds": {
+    "hero": "/themes/golden-luxury/assets/backgrounds/hero.jpg",
+    "pattern": "/themes/golden-luxury/assets/backgrounds/pattern.svg",
+    "marble": "/themes/golden-luxury/assets/backgrounds/marble.jpg"
+  },
+
+  "animations": {
+    "landing": "curtain-reveal",
+    "hero": "text-reveal",
+    "sections": "zoom-reveal",
+    "gallery": "carousel-3d",
+    "countdown": "flip-clock"
+  },
+
+  "features": [
+    "Animasi pembukaan mewah (curtain reveal)",
+    "Ornamen emas detail",
+    "Font klasik premium",
+    "Background marble texture",
+    "3D carousel gallery",
+    "Efek glitter/sparkle"
+  ]
+}

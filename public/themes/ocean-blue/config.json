@@ -1,0 +1,72 @@
+{
+  "id": "ocean-blue",
+  "name": "Ocean Blue",
+  "category": "modern",
+  "description": "Tema modern dengan nuansa biru laut yang menenangkan dan elegan",
+  "price": 150000,
+  "isBestSeller": false,
+  "isNew": true,
+
+  "colors": {
+    "primary": "#0EA5E9",
+    "primaryLight": "#7DD3FC",
+    "primaryDark": "#0284C7",
+    "secondary": "#F0F9FF",
+    "accent": "#0369A1",
+    "text": "#0F172A",
+    "textLight": "#475569",
+    "textMuted": "#94A3B8",
+    "background": "#FFFFFF",
+    "backgroundAlt": "#F0F9FF",
+    "border": "#BAE6FD"
+  },
+
+  "fonts": {
+    "heading": {
+      "family": "Cormorant Garamond",
+      "weights": [400, 500, 600, 700],
+      "style": "serif"
+    },
+    "body": {
+      "family": "Nunito Sans",
+      "weights": [400, 500, 600],
+      "style": "sans-serif"
+    },
+    "accent": {
+      "family": "Parisienne",
+      "weights": [400],
+      "style": "cursive"
+    }
+  },
+
+  "ornaments": {
+    "cornerTopLeft": "/themes/ocean-blue/assets/ornaments/corner-tl.svg",
+    "cornerTopRight": "/themes/ocean-blue/assets/ornaments/corner-tr.svg",
+    "divider": "/themes/ocean-blue/assets/ornaments/divider.svg",
+    "frame": "/themes/ocean-blue/assets/ornaments/frame.svg",
+    "wave": "/themes/ocean-blue/assets/ornaments/wave.svg"
+  },
+
+  "backgrounds": {
+    "hero": "/themes/ocean-blue/assets/backgrounds/hero.jpg",
+    "pattern": "/themes/ocean-blue/assets/backgrounds/pattern.svg",
+    "wave": "/themes/ocean-blue/assets/backgrounds/wave.svg"
+  },
+
+  "animations": {
+    "landing": "slide-up",
+    "hero": "floating-elements",
+    "sections": "fade-in-view",
+    "gallery": "masonry-fade",
+    "countdown": "slide-digits"
+  },
+
+  "features": [
+    "Animasi gelombang laut",
+    "Ornamen nautical",
+    "Font serif elegan",
+    "Background wave pattern",
+    "Countdown timer animasi",
+    "Gallery dengan lightbox"
+  ]
+}
