@@ -24,7 +24,8 @@ import {
   LoginPage,
   DashboardPage,
   InvitationsPage,
-  InvitationForm
+  InvitationForm,
+  AnalyticsDashboard
 } from './pages/admin'
 import { PublicLandingPage, ThemeCatalog, ThemePreview } from './pages/public'
 
@@ -51,6 +52,8 @@ createRoot(document.getElementById('root')).render(
         <Route path="/admin/invitations" element={<InvitationsPage />} />
         <Route path="/admin/invitations/new" element={<InvitationForm />} />
         <Route path="/admin/invitations/:uid" element={<InvitationForm />} />
+        <Route path="/admin/analytics" element={<AnalyticsDashboard />} />
+        <Route path="/admin/analytics/:uid" element={<AnalyticsDashboard />} />
 
         {/* Invitation Routes - matches /:uid pattern */}
         <Route path="/:uid/*" element={<InvitationApp />} />

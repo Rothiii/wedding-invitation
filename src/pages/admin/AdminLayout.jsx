@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { verifyToken, logout } from '@/services/adminApi'
-import { LayoutDashboard, FileText, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, FileText, LogOut, Menu, X, BarChart3 } from 'lucide-react'
 
 export default function AdminLayout({ children }) {
   const navigate = useNavigate()
@@ -35,7 +35,8 @@ export default function AdminLayout({ children }) {
 
   const menuItems = [
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/admin/invitations', icon: FileText, label: 'Undangan' }
+    { path: '/admin/invitations', icon: FileText, label: 'Undangan' },
+    { path: '/admin/analytics', icon: BarChart3, label: 'Analytics' }
   ]
 
   return (
