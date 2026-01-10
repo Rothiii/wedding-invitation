@@ -1669,10 +1669,10 @@ sakeenah/
 - [x] Guest Management (Private/Public mode)
 
 ### Sprint 3: User Experience
-- [ ] Import/Export Excel
-- [ ] Quick Actions (copy, QR, WA)
-- [ ] Preview Mode
-- [ ] Onboarding Wizard
+- [x] Import/Export Excel
+- [x] Quick Actions (copy, QR, WA)
+- [x] Preview Mode
+- [x] Onboarding Wizard
 
 ### Sprint 4: Landing Page
 - [ ] Public Landing Page
