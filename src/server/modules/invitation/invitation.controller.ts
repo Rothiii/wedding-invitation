@@ -9,7 +9,7 @@ export const publicInvitationController = new Hono()
 // GET /api/invitation/:uid - Get public invitation data
 publicInvitationController.get('/:uid', async (c) => {
   const { uid } = c.req.param()
-  const invitation = await invitationService.getByUid(uid)
+  const invitation = await invitationService.getPublicByUid(uid)
   return c.json({ success: true, data: invitation })
 })
 

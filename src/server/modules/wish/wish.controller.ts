@@ -13,7 +13,8 @@ publicWishController.get('/:uid/wishes', async (c) => {
   const limit = parseInt(c.req.query('limit') || '50')
 
   const result = await wishService.getByInvitationUid(uid, page, limit)
-  return c.json({ success: true, ...result })
+  // Frontend expects 'data' array, not 'wishes'
+  return c.json({ success: true, data: result.wishes, pagination: result.pagination })
 })
 
 // POST /api/:uid/wishes - Create a new wish
@@ -41,7 +42,7 @@ adminWishController.get('/:uid/wishes', async (c) => {
   const limit = parseInt(c.req.query('limit') || '100')
 
   const result = await wishService.getByInvitationUid(uid, page, limit)
-  return c.json({ success: true, ...result })
+  return c.json({ success: true, data: result.wishes, pagination: result.pagination })
 })
 
 // DELETE /api/admin/wishes/:id - Delete a wish

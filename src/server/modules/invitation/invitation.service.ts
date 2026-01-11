@@ -34,6 +34,17 @@ export class InvitationService {
     return this.toResponseDto(result, result.agendaItems, result.bankItems)
   }
 
+  // Public API returns format compatible with frontend config
+  async getPublicByUid(uid: string) {
+    const result = await this.invitationRepo.findWithRelations(uid)
+
+    if (!result) {
+      throw new NotFoundError('Invitation not found')
+    }
+
+    return this.toPublicResponseDto(result, result.agendaItems, result.bankItems)
+  }
+
   async getAll(): Promise<InvitationListResponseDto[]> {
     const invitations = await this.invitationRepo.findAll()
     return invitations.map(this.toListResponseDto)
@@ -244,6 +255,48 @@ export class InvitationService {
       theme: invitation.theme,
       isActive: invitation.isActive,
       createdAt: invitation.createdAt,
+    }
+  }
+
+  // Format compatible with frontend config.js structure
+  private toPublicResponseDto(
+    invitation: Invitation,
+    agendaItems: Agenda[],
+    bankItems: Bank[]
+  ) {
+    return {
+      title:
+        invitation.title ||
+        `Pernikahan ${invitation.groomName} & ${invitation.brideName}`,
+      description: invitation.description,
+      groomName: invitation.groomName,
+      brideName: invitation.brideName,
+      parentGroom: invitation.parentGroom,
+      parentBride: invitation.parentBride,
+      date: invitation.weddingDate, // Frontend expects 'date' not 'weddingDate'
+      time: invitation.time,
+      location: invitation.location,
+      address: invitation.address,
+      maps_url: invitation.mapsUrl, // Frontend expects snake_case
+      maps_embed: invitation.mapsEmbed, // Frontend expects snake_case
+      ogImage: invitation.ogImage,
+      favicon: invitation.favicon,
+      audio: invitation.audio,
+      theme: invitation.theme,
+      guestMode: invitation.guestMode,
+      agenda: agendaItems.map((a) => ({
+        title: a.title,
+        date: a.date,
+        startTime: a.startTime,
+        endTime: a.endTime,
+        location: a.location,
+        address: a.address,
+      })),
+      banks: bankItems.map((b) => ({
+        bank: b.bank,
+        accountNumber: b.accountNumber,
+        accountName: b.accountName,
+      })),
     }
   }
 }
