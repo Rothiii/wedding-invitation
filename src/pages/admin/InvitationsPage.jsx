@@ -144,12 +144,15 @@ export default function InvitationsPage() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {invitations.map((invitation) => {
-                  const isPast = new Date(invitation.wedding_date) < new Date()
+                  const weddingDate = invitation.weddingDate || invitation.wedding_date
+                  const groomName = invitation.groomName || invitation.groom_name
+                  const brideName = invitation.brideName || invitation.bride_name
+                  const isPast = weddingDate ? new Date(weddingDate) < new Date() : false
                   return (
                     <tr key={invitation.uid} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="font-medium text-gray-900">
-                          {invitation.groom_name} & {invitation.bride_name}
+                          {groomName} & {brideName}
                         </div>
                         {invitation.title && (
                           <div className="text-sm text-gray-500 truncate max-w-xs">
@@ -185,7 +188,7 @@ export default function InvitationsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                        {formatDate(invitation.wedding_date)}
+                        {formatDate(weddingDate)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span

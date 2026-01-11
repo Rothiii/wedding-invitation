@@ -73,7 +73,7 @@ export class WishService {
     return this.wishRepo.getStats(invitationUid)
   }
 
-  private toResponseDto(wish: Wish): WishResponseDto {
+  private toResponseDto(wish: Wish) {
     return {
       id: wish.id,
       invitationUid: wish.invitationUid,
@@ -82,6 +82,7 @@ export class WishService {
       message: wish.message,
       attendance: wish.attendance,
       createdAt: wish.createdAt,
+      created_at: wish.createdAt, // Frontend expects snake_case
     }
   }
 }

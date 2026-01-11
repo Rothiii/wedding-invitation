@@ -15,6 +15,7 @@ import {
   adminGuestController,
 } from '../../modules/guest'
 import { publicWishController, adminWishController } from '../../modules/wish'
+import { publicPhotoController, adminPhotoController } from '../../modules/photo'
 import { authController } from '../../modules/auth'
 import { publicSiteController, adminSiteController } from '../../modules/site'
 
@@ -43,6 +44,9 @@ export function createApp() {
   // Wishes (public can view and create)
   app.route('/api', publicWishController)
 
+  // Photos (public can view)
+  app.route('/api', publicPhotoController)
+
   // Site content (landing page data)
   app.route('/api/site', publicSiteController)
 
@@ -66,12 +70,28 @@ export function createApp() {
   // Wishes management (nested under invitations)
   admin.route('/invitations', adminWishController)
 
+  // Photos management (nested under invitations)
+  admin.route('/invitations', adminPhotoController)
+
   // Site content management
   admin.route('/site', adminSiteController)
 
-  // Single guest/wish operations (not nested)
+  // Themes endpoint (static list for now)
+  admin.get('/themes', (c) => {
+    const themes = [
+      { id: 'elegant-rose', name: 'Elegant Rose', preview: '/themes/elegant-rose/preview.jpg' },
+      { id: 'ocean-blue', name: 'Ocean Blue', preview: '/themes/ocean-blue/preview.jpg' },
+      { id: 'golden-luxury', name: 'Golden Luxury', preview: '/themes/golden-luxury/preview.jpg' },
+      { id: 'rustic-garden', name: 'Rustic Garden', preview: '/themes/rustic-garden/preview.jpg' },
+      { id: 'modern-minimal', name: 'Modern Minimal', preview: '/themes/modern-minimal/preview.jpg' },
+    ]
+    return c.json({ success: true, data: themes })
+  })
+
+  // Single guest/wish/photo operations (not nested)
   admin.route('/', adminGuestController)
   admin.route('/', adminWishController)
+  admin.route('/', adminPhotoController)
 
   // Mount admin routes
   app.route('/api/admin', admin)

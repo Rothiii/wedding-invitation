@@ -178,3 +178,43 @@ export async function fetchStatsAdmin(uid) {
 
   return data
 }
+
+// Photo Gallery APIs
+export async function fetchPhotos(uid) {
+  const response = await authFetch(`${API_URL}/api/admin/invitations/${uid}/photos`)
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to fetch photos')
+  }
+
+  return data
+}
+
+export async function savePhotos(uid, photos) {
+  const response = await authFetch(`${API_URL}/api/admin/invitations/${uid}/photos/batch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photos })
+  })
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to save photos')
+  }
+
+  return data
+}
+
+export async function deletePhoto(id) {
+  const response = await authFetch(`${API_URL}/api/admin/photos/${id}`, {
+    method: 'DELETE'
+  })
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to delete photo')
+  }
+
+  return data
+}

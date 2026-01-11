@@ -11,7 +11,7 @@ import type {
   InvitationResponseDto,
   InvitationListResponseDto,
 } from './invitation.dto'
-import type { Invitation, Agenda, Bank } from '../../infra/database/schema'
+import type { Invitation, Agenda, Bank, Photo } from '../../infra/database/schema'
 
 export class InvitationService {
   private invitationRepo: InvitationRepository
@@ -31,7 +31,7 @@ export class InvitationService {
       throw new NotFoundError('Invitation not found')
     }
 
-    return this.toResponseDto(result, result.agendaItems, result.bankItems)
+    return this.toResponseDto(result, result.agendaItems, result.bankItems, result.photoItems)
   }
 
   // Public API returns format compatible with frontend config
@@ -42,7 +42,7 @@ export class InvitationService {
       throw new NotFoundError('Invitation not found')
     }
 
-    return this.toPublicResponseDto(result, result.agendaItems, result.bankItems)
+    return this.toPublicResponseDto(result, result.agendaItems, result.bankItems, result.photoItems)
   }
 
   async getAll(): Promise<InvitationListResponseDto[]> {
@@ -197,8 +197,9 @@ export class InvitationService {
   private toResponseDto(
     invitation: Invitation,
     agendaItems: Agenda[],
-    bankItems: Bank[]
-  ): InvitationResponseDto {
+    bankItems: Bank[],
+    photoItems: Photo[] = []
+  ) {
     return {
       uid: invitation.uid,
       title:
@@ -240,6 +241,13 @@ export class InvitationService {
         accountName: b.accountName,
         orderIndex: b.orderIndex || 0,
       })),
+      photos: photoItems.map((p) => ({
+        id: p.id,
+        src: p.src,
+        alt: p.alt,
+        caption: p.caption,
+        orderIndex: p.orderIndex || 0,
+      })),
     }
   }
 
@@ -262,7 +270,8 @@ export class InvitationService {
   private toPublicResponseDto(
     invitation: Invitation,
     agendaItems: Agenda[],
-    bankItems: Bank[]
+    bankItems: Bank[],
+    photoItems: Photo[] = []
   ) {
     return {
       title:
@@ -296,6 +305,12 @@ export class InvitationService {
         bank: b.bank,
         accountNumber: b.accountNumber,
         accountName: b.accountName,
+      })),
+      photos: photoItems.map((p) => ({
+        id: p.id,
+        src: p.src,
+        alt: p.alt,
+        caption: p.caption,
       })),
     }
   }

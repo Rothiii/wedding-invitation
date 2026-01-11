@@ -7,9 +7,10 @@ import {
   updateInvitation,
   fetchThemes,
   fetchStatsAdmin,
-  fetchWishesAdmin
+  fetchWishesAdmin,
+  savePhotos
 } from '@/services/adminApi'
-import { ArrowLeft, Plus, Trash2, Save, Eye, Users, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Save, Eye, Users, MessageSquare, Image, GripVertical } from 'lucide-react'
 
 export default function InvitationForm() {
   const navigate = useNavigate()
@@ -48,7 +49,8 @@ export default function InvitationForm() {
       loop: true
     },
     agenda: [],
-    banks: []
+    banks: [],
+    photos: []
   })
 
   useEffect(() => {
@@ -110,6 +112,12 @@ export default function InvitationForm() {
           bank: b.bank,
           account_number: b.accountNumber || b.account_number || '',
           account_name: b.accountName || b.account_name || ''
+        })),
+        photos: (data.photos || []).map((p) => ({
+          id: p.id,
+          src: p.src || '',
+          alt: p.alt || '',
+          caption: p.caption || ''
         }))
       })
     } catch (err) {
@@ -249,8 +257,26 @@ export default function InvitationForm() {
       const apiData = transformFormToApi(form)
       if (isEdit) {
         await updateInvitation(uid, apiData)
+        // Save photos separately
+        if (form.photos.length > 0) {
+          await savePhotos(uid, form.photos.map((p, index) => ({
+            src: p.src,
+            alt: p.alt,
+            caption: p.caption,
+            orderIndex: index
+          })))
+        }
       } else {
-        await createInvitation(apiData)
+        const result = await createInvitation(apiData)
+        // Save photos for new invitation
+        if (form.photos.length > 0 && result.data?.uid) {
+          await savePhotos(result.data.uid, form.photos.map((p, index) => ({
+            src: p.src,
+            alt: p.alt,
+            caption: p.caption,
+            orderIndex: index
+          })))
+        }
       }
       navigate('/admin/invitations')
     } catch (err) {
@@ -259,6 +285,30 @@ export default function InvitationForm() {
     } finally {
       setIsSaving(false)
     }
+  }
+
+  // Photo management functions
+  const addPhoto = () => {
+    setForm((prev) => ({
+      ...prev,
+      photos: [...prev.photos, { src: '', alt: '', caption: '' }]
+    }))
+  }
+
+  const updatePhoto = (index, field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      photos: prev.photos.map((photo, i) =>
+        i === index ? { ...photo, [field]: value } : photo
+      )
+    }))
+  }
+
+  const removePhoto = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index)
+    }))
   }
 
   const getInvitationUrl = () => {
@@ -281,7 +331,8 @@ export default function InvitationForm() {
     { id: 'details', label: 'Detail Acara' },
     { id: 'agenda', label: 'Agenda' },
     { id: 'banks', label: 'Amplop Digital' },
-    { id: 'media', label: 'Media' }
+    { id: 'media', label: 'Media' },
+    { id: 'gallery', label: 'Galeri Foto' }
   ]
 
   if (isEdit) {
@@ -840,6 +891,123 @@ export default function InvitationForm() {
                   <span className="text-sm text-gray-700">Loop</span>
                 </label>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Gallery Tab */}
+        {activeTab === 'gallery' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-800">Galeri Foto</h2>
+                <button
+                  type="button"
+                  onClick={addPhoto}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                >
+                  <Plus size={16} />
+                  Tambah Foto
+                </button>
+              </div>
+
+              <p className="text-sm text-gray-500 mb-4">
+                Tambahkan foto prewedding atau momen spesial Anda. Foto akan ditampilkan di galeri undangan.
+              </p>
+
+              {form.photos.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
+                  <Image className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-500">Belum ada foto</p>
+                  <button
+                    type="button"
+                    onClick={addPhoto}
+                    className="mt-3 text-sm text-rose-600 hover:text-rose-700"
+                  >
+                    Tambah foto pertama
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {form.photos.map((photo, index) => (
+                    <div key={index} className="flex gap-4 p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center text-gray-400">
+                        <GripVertical size={20} />
+                      </div>
+
+                      {/* Preview */}
+                      <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                        {photo.src ? (
+                          <img
+                            src={photo.src}
+                            alt={photo.alt || `Foto ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none'
+                              e.target.nextSibling.style.display = 'flex'
+                            }}
+                          />
+                        ) : null}
+                        <div className={`w-full h-full items-center justify-center ${photo.src ? 'hidden' : 'flex'}`}>
+                          <Image className="text-gray-400" size={24} />
+                        </div>
+                      </div>
+
+                      {/* Fields */}
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">URL Foto *</label>
+                          <input
+                            type="url"
+                            value={photo.src}
+                            onChange={(e) => updatePhoto(index, 'src', e.target.value)}
+                            placeholder="https://example.com/foto.jpg"
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Alt Text</label>
+                          <input
+                            type="text"
+                            value={photo.alt}
+                            onChange={(e) => updatePhoto(index, 'alt', e.target.value)}
+                            placeholder="Deskripsi foto"
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Caption</label>
+                          <input
+                            type="text"
+                            value={photo.caption}
+                            onChange={(e) => updatePhoto(index, 'caption', e.target.value)}
+                            placeholder="Caption foto"
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Delete button */}
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(index)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors self-start"
+                        title="Hapus foto"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {form.photos.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-xs text-gray-500">
+                    Total: {form.photos.length} foto. Foto akan ditampilkan sesuai urutan di atas.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}

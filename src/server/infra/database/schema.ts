@@ -201,6 +201,28 @@ export const packages = pgTable(
   (table) => [index('idx_packages_order').on(table.orderIndex)]
 )
 
+// Photos table (for gallery)
+export const photos = pgTable(
+  'photos',
+  {
+    id: serial('id').primaryKey(),
+    invitationUid: varchar('invitation_uid', { length: 50 })
+      .notNull()
+      .references(() => invitations.uid, { onDelete: 'cascade' }),
+
+    src: varchar('src', { length: 500 }).notNull(),
+    alt: varchar('alt', { length: 255 }),
+    caption: varchar('caption', { length: 500 }),
+    orderIndex: integer('order_index').default(0),
+
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => [
+    index('idx_photos_invitation_uid').on(table.invitationUid),
+    index('idx_photos_order').on(table.invitationUid, table.orderIndex),
+  ]
+)
+
 // Type exports
 export type Invitation = typeof invitations.$inferSelect
 export type NewInvitation = typeof invitations.$inferInsert
@@ -218,3 +240,5 @@ export type Testimonial = typeof testimonials.$inferSelect
 export type NewTestimonial = typeof testimonials.$inferInsert
 export type Package = typeof packages.$inferSelect
 export type NewPackage = typeof packages.$inferInsert
+export type Photo = typeof photos.$inferSelect
+export type NewPhoto = typeof photos.$inferInsert

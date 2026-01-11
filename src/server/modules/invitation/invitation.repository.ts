@@ -1,15 +1,17 @@
-import { eq, desc } from 'drizzle-orm'
+import { eq, desc, asc } from 'drizzle-orm'
 import { db } from '../../infra/database/client'
 import {
   invitations,
   agenda,
   banks,
+  photos,
   type Invitation,
   type NewInvitation,
   type Agenda,
   type NewAgenda,
   type Bank,
   type NewBank,
+  type Photo,
 } from '../../infra/database/schema'
 
 export class InvitationRepository {
@@ -55,13 +57,14 @@ export class InvitationRepository {
     | (Invitation & {
         agendaItems: Agenda[]
         bankItems: Bank[]
+        photoItems: Photo[]
       })
     | null
   > {
     const invitation = await this.findByUid(uid)
     if (!invitation) return null
 
-    const [agendaItems, bankItems] = await Promise.all([
+    const [agendaItems, bankItems, photoItems] = await Promise.all([
       db
         .select()
         .from(agenda)
@@ -72,12 +75,18 @@ export class InvitationRepository {
         .from(banks)
         .where(eq(banks.invitationUid, uid))
         .orderBy(banks.orderIndex),
+      db
+        .select()
+        .from(photos)
+        .where(eq(photos.invitationUid, uid))
+        .orderBy(asc(photos.orderIndex)),
     ])
 
     return {
       ...invitation,
       agendaItems,
       bankItems,
+      photoItems,
     }
   }
 
