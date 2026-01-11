@@ -8,9 +8,10 @@ import {
   fetchThemes,
   fetchStatsAdmin,
   fetchWishesAdmin,
-  savePhotos
+  savePhotos,
+  uploadPhoto
 } from '@/services/adminApi'
-import { ArrowLeft, Plus, Trash2, Save, Eye, Users, MessageSquare, Image, GripVertical } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Save, Eye, Users, MessageSquare, Image, GripVertical, Upload, Link } from 'lucide-react'
 
 export default function InvitationForm() {
   const navigate = useNavigate()
@@ -288,6 +289,8 @@ export default function InvitationForm() {
   }
 
   // Photo management functions
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+
   const addPhoto = () => {
     setForm((prev) => ({
       ...prev,
@@ -309,6 +312,42 @@ export default function InvitationForm() {
       ...prev,
       photos: prev.photos.filter((_, i) => i !== index)
     }))
+  }
+
+  const handleFileUpload = async (e) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    // For new invitations, we need uid first
+    const invitationUid = uid || form.uid
+    if (!invitationUid) {
+      setError('Harap isi UID undangan terlebih dahulu sebelum upload foto')
+      setActiveTab('basic')
+      return
+    }
+
+    setUploadingPhoto(true)
+    try {
+      for (const file of files) {
+        const result = await uploadPhoto(invitationUid, file)
+        if (result.success && result.data?.url) {
+          setForm((prev) => ({
+            ...prev,
+            photos: [...prev.photos, {
+              src: result.data.url,
+              alt: file.name.split('.')[0],
+              caption: ''
+            }]
+          }))
+        }
+      }
+    } catch (err) {
+      setError('Gagal upload foto: ' + err.message)
+    } finally {
+      setUploadingPhoto(false)
+      // Reset file input
+      e.target.value = ''
+    }
   }
 
   const getInvitationUrl = () => {
@@ -901,31 +940,61 @@ export default function InvitationForm() {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-800">Galeri Foto</h2>
-                <button
-                  type="button"
-                  onClick={addPhoto}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                >
-                  <Plus size={16} />
-                  Tambah Foto
-                </button>
+                <div className="flex gap-2">
+                  {/* Upload button */}
+                  <label className={`flex items-center gap-2 px-3 py-2 text-sm bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors cursor-pointer ${uploadingPhoto ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <Upload size={16} />
+                    {uploadingPhoto ? 'Uploading...' : 'Upload Foto'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      multiple
+                      onChange={handleFileUpload}
+                      disabled={uploadingPhoto}
+                      className="hidden"
+                    />
+                  </label>
+                  {/* Add URL button */}
+                  <button
+                    type="button"
+                    onClick={addPhoto}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-rose-600 border border-rose-300 rounded-lg hover:bg-rose-50 transition-colors"
+                  >
+                    <Link size={16} />
+                    Tambah URL
+                  </button>
+                </div>
               </div>
 
               <p className="text-sm text-gray-500 mb-4">
-                Tambahkan foto prewedding atau momen spesial Anda. Foto akan ditampilkan di galeri undangan.
+                Upload foto langsung atau tambahkan URL gambar. Foto akan ditampilkan di galeri undangan.
               </p>
 
               {form.photos.length === 0 ? (
                 <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
                   <Image className="mx-auto h-12 w-12 text-gray-400" />
                   <p className="mt-2 text-sm text-gray-500">Belum ada foto</p>
-                  <button
-                    type="button"
-                    onClick={addPhoto}
-                    className="mt-3 text-sm text-rose-600 hover:text-rose-700"
-                  >
-                    Tambah foto pertama
-                  </button>
+                  <div className="mt-4 flex justify-center gap-3">
+                    <label className="flex items-center gap-2 px-4 py-2 text-sm bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors cursor-pointer">
+                      <Upload size={16} />
+                      Upload Foto
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        multiple
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addPhoto}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-rose-600 border border-rose-300 rounded-lg hover:bg-rose-50"
+                    >
+                      <Link size={16} />
+                      Tambah URL
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -958,7 +1027,7 @@ export default function InvitationForm() {
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">URL Foto *</label>
                           <input
-                            type="url"
+                            type="text"
                             value={photo.src}
                             onChange={(e) => updatePhoto(index, 'src', e.target.value)}
                             placeholder="https://example.com/foto.jpg"

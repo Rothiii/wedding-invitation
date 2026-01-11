@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { serveStatic } from '@hono/node-server/serve-static'
 import {
   errorMiddleware,
   authMiddleware,
@@ -21,6 +22,9 @@ import { publicSiteController, adminSiteController } from '../../modules/site'
 
 export function createApp() {
   const app = new Hono()
+
+  // Serve uploaded files
+  app.use('/uploads/*', serveStatic({ root: './public' }))
 
   // Global middlewares
   app.use('*', corsMiddleware)
