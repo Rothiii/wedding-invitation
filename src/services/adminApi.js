@@ -40,7 +40,7 @@ async function authFetch(url, options = {}) {
 }
 
 export async function login(username, password) {
-  const response = await fetch(`${API_URL}/api/admin/login`, {
+  const response = await fetch(`${API_URL}/api/admin/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
@@ -52,8 +52,8 @@ export async function login(username, password) {
     throw new Error(data.error || 'Login failed')
   }
 
-  if (data.success && data.token) {
-    setToken(data.token)
+  if (data.success && data.data?.token) {
+    setToken(data.data.token)
   }
 
   return data
@@ -61,7 +61,7 @@ export async function login(username, password) {
 
 export async function logout() {
   try {
-    await authFetch(`${API_URL}/api/admin/logout`, { method: 'POST' })
+    await authFetch(`${API_URL}/api/admin/auth/logout`, { method: 'POST' })
   } finally {
     removeToken()
   }
@@ -72,7 +72,7 @@ export async function verifyToken() {
   if (!token) return false
 
   try {
-    const response = await authFetch(`${API_URL}/api/admin/verify`)
+    const response = await authFetch(`${API_URL}/api/admin/auth/verify`)
     const data = await response.json()
     return data.success
   } catch {

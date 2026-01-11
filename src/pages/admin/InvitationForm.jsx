@@ -79,17 +79,17 @@ export default function InvitationForm() {
         uid: data.uid,
         title: data.title || '',
         description: data.description || '',
-        groom_name: data.groom_name || '',
-        bride_name: data.bride_name || '',
-        parent_groom: data.parent_groom || '',
-        parent_bride: data.parent_bride || '',
-        wedding_date: data.wedding_date ? data.wedding_date.split('T')[0] : '',
+        groom_name: data.groomName || data.groom_name || '',
+        bride_name: data.brideName || data.bride_name || '',
+        parent_groom: data.parentGroom || data.parent_groom || '',
+        parent_bride: data.parentBride || data.parent_bride || '',
+        wedding_date: data.weddingDate ? data.weddingDate.split('T')[0] : (data.wedding_date ? data.wedding_date.split('T')[0] : ''),
         time: data.time || '',
         location: data.location || '',
         address: data.address || '',
-        maps_url: data.maps_url || '',
-        maps_embed: data.maps_embed || '',
-        og_image: data.og_image || '/images/og-image.jpg',
+        maps_url: data.mapsUrl || data.maps_url || '',
+        maps_embed: data.mapsEmbed || data.maps_embed || '',
+        og_image: data.ogImage || data.og_image || '/images/og-image.jpg',
         favicon: data.favicon || '/images/favicon.ico',
         theme: data.theme || 'default',
         audio: data.audio || {
@@ -98,8 +98,19 @@ export default function InvitationForm() {
           autoplay: true,
           loop: true
         },
-        agenda: data.agenda || [],
-        banks: data.banks || []
+        agenda: (data.agenda || []).map((a) => ({
+          title: a.title,
+          date: a.date,
+          start_time: a.startTime || a.start_time || '',
+          end_time: a.endTime || a.end_time || '',
+          location: a.location || '',
+          address: a.address || ''
+        })),
+        banks: (data.banks || []).map((b) => ({
+          bank: b.bank,
+          account_number: b.accountNumber || b.account_number || '',
+          account_name: b.accountName || b.account_name || ''
+        }))
       })
     } catch (err) {
       setError(err.message)
@@ -194,16 +205,52 @@ export default function InvitationForm() {
     return `${groom}-${bride}-${year}`
   }
 
+  const transformFormToApi = (formData) => {
+    return {
+      uid: formData.uid,
+      title: formData.title,
+      description: formData.description,
+      groomName: formData.groom_name,
+      brideName: formData.bride_name,
+      parentGroom: formData.parent_groom,
+      parentBride: formData.parent_bride,
+      weddingDate: formData.wedding_date,
+      time: formData.time,
+      location: formData.location,
+      address: formData.address,
+      mapsUrl: formData.maps_url,
+      mapsEmbed: formData.maps_embed,
+      ogImage: formData.og_image,
+      favicon: formData.favicon,
+      theme: formData.theme,
+      audio: formData.audio,
+      agenda: formData.agenda.map((a) => ({
+        title: a.title,
+        date: a.date,
+        startTime: a.start_time,
+        endTime: a.end_time,
+        location: a.location,
+        address: a.address
+      })),
+      banks: formData.banks.map((b) => ({
+        bank: b.bank,
+        accountNumber: b.account_number,
+        accountName: b.account_name
+      }))
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setIsSaving(true)
 
     try {
+      const apiData = transformFormToApi(form)
       if (isEdit) {
-        await updateInvitation(uid, form)
+        await updateInvitation(uid, apiData)
       } else {
-        await createInvitation(form)
+        await createInvitation(apiData)
       }
       navigate('/admin/invitations')
     } catch (err) {

@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
 import {
   verifyCredentials,
   createSession,
@@ -13,8 +12,20 @@ const app = new Hono()
 const api = new Hono()
 const adminApi = new Hono()
 
-// Middleware
-app.use('*', logger())
+// Custom logger middleware with detailed output
+app.use('*', async (c, next) => {
+  const start = Date.now()
+  const timestamp = new Date().toISOString()
+  const method = c.req.method
+  const path = c.req.path
+
+  await next()
+
+  const duration = Date.now() - start
+  const status = c.res.status
+  console.log(`[${timestamp}] ${method} ${path} - ${status} (${duration}ms)`)
+})
+
 app.use('*', cors({
   origin: '*',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
