@@ -98,3 +98,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile View Container */
+.mobile-view-wrapper {
+  min-height: 100vh;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+}
+
+.mobile-view-content {
+  width: 100%;
+  max-width: 580px;
+  min-height: 100vh;
+  position: relative;
+}

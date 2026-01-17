@@ -31,6 +31,8 @@ const config = {
     ogImage: "/images/og-image.jpg",
     // Icon that appears in browser tab
     favicon: "/images/favicon.ico",
+    // Cover image for landing page (full screen background)
+    coverImage: "/images/cover.jpg",
     // List of event agenda/schedule
     agenda: [
       {
