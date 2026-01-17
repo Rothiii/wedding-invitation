@@ -150,9 +150,9 @@ const Layout = ({ children }) => {
   }, []);
 
   return (
-    <div className="relative min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+    <div className="mobile-view-wrapper">
       <motion.div
-        className="mx-auto w-full max-w-[430px] min-h-screen bg-white relative overflow-hidden border border-gray-200 shadow-lg"
+        className="mobile-view-content bg-white"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
