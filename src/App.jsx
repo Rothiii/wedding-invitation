@@ -131,11 +131,12 @@ function App() {
           <AnimatePresence mode='wait'>
             {!isInvitationOpen ? (
               <LandingPage
+                key="landing"
                 onOpenInvitation={() => setIsInvitationOpen(true)}
                 guestName={guest?.name}
               />
             ) : (
-              <Layout>
+              <Layout key="main">
                 <MainContent />
               </Layout>
             )}

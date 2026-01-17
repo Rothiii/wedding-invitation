@@ -7,14 +7,18 @@ const LandingPage = ({ onOpenInvitation, guestName }) => {
   const config = useConfig();
 
   return (
-    <div className="mobile-view-wrapper">
+    <motion.div
+      className="mobile-view-wrapper"
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, y: '-100vh' }}
+      transition={{
+        duration: 1,
+        ease: [0.4, 0, 0.2, 1]
+      }}
+    >
       <div className="mobile-view-content">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="min-h-screen relative overflow-hidden"
-        >
+        <div className="min-h-screen relative overflow-hidden">
           {/* Full Screen Background Image */}
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -72,9 +76,9 @@ const LandingPage = ({ onOpenInvitation, guestName }) => {
               </motion.button>
             </motion.div>
           </div>
-        </motion.div>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
