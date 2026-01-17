@@ -1,230 +1,123 @@
-import { Calendar, Clock, Heart } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react';
-import { useConfig } from '@/hooks/useConfig';
-import { formatEventDate } from '@/lib/formatEventDate';
-import { useInvitation } from '@/context/InvitationContext';
+import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect, useState, useCallback } from 'react'
+import { useConfig } from '@/hooks/useConfig'
+import { useInvitation } from '@/context/InvitationContext'
 
 export default function Hero() {
-    const config = useConfig(); // Use hook to get config from API or fallback to static
-    const { guest } = useInvitation();
+    const config = useConfig()
+    const { config: invitationConfig } = useInvitation()
 
-    // Get guest name from context (supports both ?to=Name and ?g=CODE modes)
-    const guestName = guest?.name || '';
+    // Get hero photos from config (filtered by section='hero')
+    const heroPhotos = invitationConfig?.heroPhotos || []
 
-    const CountdownTimer = ({ targetDate }) => {
-        const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-        function calculateTimeLeft() {
-            const difference = +new Date(targetDate) - +new Date();
-            let timeLeft = {};
+    const [currentIndex, setCurrentIndex] = useState(0)
 
-            if (difference > 0) {
-                timeLeft = {
-                    hari: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                    jam: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                    menit: Math.floor((difference / 1000 / 60) % 60),
-                    detik: Math.floor((difference / 1000) % 60),
-                };
-            }
-            return timeLeft;
+    // Auto slide effect - slide every 4 seconds
+    useEffect(() => {
+        if (heroPhotos.length <= 1) return
+
+        const interval = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % heroPhotos.length)
+        }, 4000)
+
+        return () => clearInterval(interval)
+    }, [heroPhotos.length])
+
+    // Scroll to next section
+    const scrollToNext = useCallback(() => {
+        const nextSection = document.getElementById('events') || document.getElementById('couple')
+        if (nextSection) {
+            nextSection.scrollIntoView({ behavior: 'smooth' })
         }
-        useEffect(() => {
-            const timer = setInterval(() => {
-                setTimeLeft(calculateTimeLeft());
-            }, 1000);
-            return () => clearInterval(timer);
-        }, [targetDate]);
-
-        return (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
-                {Object.keys(timeLeft).map((interval) => (
-                    <motion.div
-                        key={interval}
-                        initial={{ scale: 0.5, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="flex flex-col items-center p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-rose-100"
-                    >
-                        <span className="text-xl sm:text-2xl font-bold text-rose-600">
-                            {timeLeft[interval]}
-                        </span>
-                        <span className="text-xs text-gray-500 capitalize">{interval}</span>
-                    </motion.div>
-                ))}
-            </div>
-        );
-    };
-
-    const FloatingHearts = () => {
-        return (
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(8)].map((_, i) => (
-                    <motion.div
-                        key={i}
-                        initial={{
-                            opacity: 0,
-                            scale: 0,
-                            x: Math.random() * window.innerWidth,
-                            y: window.innerHeight
-                        }}
-                        animate={{
-                            opacity: [0, 1, 1, 0],
-                            scale: [0, 1, 1, 0.5],
-                            x: Math.random() * window.innerWidth,
-                            y: -100
-                        }}
-                        transition={{
-                            duration: 4,
-                            repeat: Infinity,
-                            delay: i * 0.8,
-                            ease: "easeOut"
-                        }}
-                        className="absolute"
-                    >
-                        <Heart
-                            className={`w-${Math.floor(Math.random() * 2) + 8} h-${Math.floor(Math.random() * 2) + 8} ${i % 3 === 0 ? 'text-rose-400' :
-                                i % 3 === 1 ? 'text-pink-400' :
-                                    'text-red-400'
-                                }`}
-                            fill="currentColor"
-                        />
-                    </motion.div>
-                ))}
-            </div>
-        );
-    };
+    }, [])
 
     return (
-        <>
-            <section id="home" className="min-h-screen flex flex-col items-center justify-center px-4 py-16 sm:py-20 text-center relative overflow-hidden">
+        <section id="home" className="min-h-screen relative overflow-hidden">
+            {/* Photo Slideshow Background */}
+            <div className="absolute inset-0">
+                <AnimatePresence mode="wait">
+                    {heroPhotos.length > 0 ? (
+                        <motion.div
+                            key={currentIndex}
+                            initial={{ opacity: 0, x: 50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -50 }}
+                            transition={{ duration: 0.6, ease: 'easeInOut' }}
+                            className="absolute inset-0"
+                        >
+                            <img
+                                src={heroPhotos[currentIndex]?.src}
+                                alt={heroPhotos[currentIndex]?.alt || 'Wedding photo'}
+                                className="w-full h-full object-cover"
+                            />
+                        </motion.div>
+                    ) : (
+                        // Fallback gradient background if no photos
+                        <div className="absolute inset-0 bg-gradient-to-br from-rose-100 via-pink-50 to-rose-50" />
+                    )}
+                </AnimatePresence>
+
+                {/* Overlay gradient for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
+            </div>
+
+            {/* Content */}
+            <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4">
+                {/* Wedding Title */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    className="space-y-6 relative z-10"
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                    className="text-center"
+                >
+                    <p className="text-sm tracking-[0.3em] text-white/90 uppercase mb-3 font-light">
+                        The Wedding of
+                    </p>
+                    <h1 className="text-4xl sm:text-5xl pinyon-script-regular text-white drop-shadow-lg uppercase tracking-wide">
+                        {config.groomName} & {config.brideName}
+                    </h1>
+                </motion.div>
+
+                {/* Scroll Down Indicator */}
+                <motion.button
+                    onClick={scrollToNext}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1 }}
+                    className="absolute bottom-16 left-1/2 -translate-x-1/2"
                 >
                     <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="inline-block mx-auto"
+                        animate={{ y: [0, 6, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                        className="flex flex-col items-center text-white/80 hover:text-white transition-colors"
                     >
-                        <span className="px-4 py-1 text-sm bg-rose-50 text-rose-600 rounded-full border border-rose-200">
-                            Catat Tanggal Penting Ini
-                        </span>
-                    </motion.div>
-
-                    <div className="space-y-4">
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.4 }}
-                            className="text-gray-500 font-light italic text-base sm:text-lg"
-                        >
-                            InsyaAllah Kami Akan Menikah
-                        </motion.p>
-                        <motion.h2
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.6 }}
-                            className="text-3xl sm:text-5xl font-serif bg-clip-text text-transparent bg-gradient-to-r from-rose-600 to-pink-600"
-                        >
-                            {config.groomName} & {config.brideName}
-                        </motion.h2>
-                    </div>
-
-                    <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.8 }}
-                        className="relative max-w-md mx-auto"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-b from-rose-50/50 to-white/50 backdrop-blur-md rounded-2xl" />
-
-                        <div className="relative px-4 sm:px-8 py-8 sm:py-10 rounded-2xl border border-rose-100/50">
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-px">
-                                <div className="w-20 sm:w-32 h-[2px] bg-gradient-to-r from-transparent via-rose-200 to-transparent" />
-                            </div>
-
-                            <div className="space-y-6 text-center">
-                                <div className="space-y-3">
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: 0.9 }}
-                                        className="flex items-center justify-center space-x-2"
-                                    >
-                                        <Calendar className="w-4 h-4 text-rose-400" />
-                                        <span className="text-gray-700 font-medium text-sm sm:text-base">
-                                            {formatEventDate(config.date, "full")}
-                                        </span>
-                                    </motion.div>
-
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: 1 }}
-                                        className="flex items-center justify-center space-x-2"
-                                    >
-                                        <Clock className="w-4 h-4 text-rose-400" />
-                                        <span className="text-gray-700 font-medium text-sm sm:text-base">
-                                            {config.time}
-                                        </span>
-                                    </motion.div>
-                                </div>
-
-                                <div className="flex items-center justify-center gap-3">
-                                    <div className="h-px w-8 sm:w-12 bg-rose-200/50" />
-                                    <div className="w-2 h-2 rounded-full bg-rose-200" />
-                                    <div className="h-px w-8 sm:w-12 bg-rose-200/50" />
-                                </div>
-
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 1.1 }}
-                                    className="space-y-2"
-                                >
-                                    <p className="text-gray-500 font-serif italic text-sm">
-                                        Kepada Yth.
-                                    </p>
-                                    <p className="text-gray-600 font-medium text-sm">
-                                        Bapak/Ibu/Saudara/i
-                                    </p>
-                                    <p className="text-rose-500 font-semibold text-lg">
-                                        {guestName || "Tamu Undangan"}
-                                    </p>
-                                </motion.div>
-                            </div>
-
-                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-px">
-                                <div className="w-20 sm:w-32 h-[2px] bg-gradient-to-r from-transparent via-rose-200 to-transparent" />
-                            </div>
+                        <div className="w-8 h-12 border-2 border-white/60 rounded-full flex items-start justify-center p-2">
+                            <motion.div
+                                animate={{ y: [0, 12, 0] }}
+                                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                                className="w-1 h-2 bg-white/80 rounded-full"
+                            />
                         </div>
-
-                        <div className="absolute -top-2 -right-2 w-16 sm:w-24 h-16 sm:h-24 bg-rose-100/20 rounded-full blur-xl" />
-                        <div className="absolute -bottom-2 -left-2 w-16 sm:w-24 h-16 sm:h-24 bg-rose-100/20 rounded-full blur-xl" />
                     </motion.div>
+                </motion.button>
+            </div>
 
-                    <CountdownTimer targetDate={config.date} />
-
-                    <div className="pt-6 relative">
-                        <FloatingHearts />
-                        <motion.div
-                            animate={{
-                                scale: [1, 1.1, 1],
-                                rotate: [0, 5, -5, 0]
-                            }}
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            }}
-                        >
-                            <Heart className="w-10 sm:w-12 h-10 sm:h-12 text-rose-500 mx-auto" fill="currentColor" />
-                        </motion.div>
-                    </div>
-                </motion.div>
-            </section>
-        </>
+            {/* Photo indicators */}
+            {heroPhotos.length > 1 && (
+                <div className="absolute bottom-32 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                    {heroPhotos.map((_, index) => (
+                        <button
+                            key={index}
+                            onClick={() => setCurrentIndex(index)}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${
+                                index === currentIndex
+                                    ? 'bg-white w-6'
+                                    : 'bg-white/40 w-1.5 hover:bg-white/60'
+                            }`}
+                        />
+                    ))}
+                </div>
+            )}
+        </section>
     )
 }

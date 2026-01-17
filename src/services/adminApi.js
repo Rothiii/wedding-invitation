@@ -180,8 +180,11 @@ export async function fetchStatsAdmin(uid) {
 }
 
 // Photo Gallery APIs
-export async function fetchPhotos(uid) {
-  const response = await authFetch(`${API_URL}/api/admin/invitations/${uid}/photos`)
+export async function fetchPhotos(uid, section = null) {
+  const url = section
+    ? `${API_URL}/api/admin/invitations/${uid}/photos?section=${section}`
+    : `${API_URL}/api/admin/invitations/${uid}/photos`
+  const response = await authFetch(url)
   const data = await response.json()
 
   if (!response.ok) {
@@ -191,8 +194,8 @@ export async function fetchPhotos(uid) {
   return data
 }
 
-export async function savePhotos(uid, photos) {
-  const response = await authFetch(`${API_URL}/api/admin/invitations/${uid}/photos/batch`, {
+export async function savePhotos(uid, photos, section = 'gallery') {
+  const response = await authFetch(`${API_URL}/api/admin/invitations/${uid}/photos/batch?section=${section}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ photos })

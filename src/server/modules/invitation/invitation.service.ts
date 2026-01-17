@@ -273,6 +273,10 @@ export class InvitationService {
     bankItems: Bank[],
     photoItems: Photo[] = []
   ) {
+    // Split photos by section
+    const galleryPhotos = photoItems.filter((p) => !p.section || p.section === 'gallery')
+    const heroPhotos = photoItems.filter((p) => p.section === 'hero')
+
     return {
       title:
         invitation.title ||
@@ -306,7 +310,13 @@ export class InvitationService {
         accountNumber: b.accountNumber,
         accountName: b.accountName,
       })),
-      photos: photoItems.map((p) => ({
+      photos: galleryPhotos.map((p) => ({
+        id: p.id,
+        src: p.src,
+        alt: p.alt,
+        caption: p.caption,
+      })),
+      heroPhotos: heroPhotos.map((p) => ({
         id: p.id,
         src: p.src,
         alt: p.alt,

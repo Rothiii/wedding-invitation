@@ -201,7 +201,7 @@ export const packages = pgTable(
   (table) => [index('idx_packages_order').on(table.orderIndex)]
 )
 
-// Photos table (for gallery)
+// Photos table (for gallery and hero)
 export const photos = pgTable(
   'photos',
   {
@@ -213,6 +213,7 @@ export const photos = pgTable(
     src: varchar('src', { length: 500 }).notNull(),
     alt: varchar('alt', { length: 255 }),
     caption: varchar('caption', { length: 500 }),
+    section: varchar('section', { length: 50 }).default('gallery'), // 'gallery' | 'hero'
     orderIndex: integer('order_index').default(0),
 
     createdAt: timestamp('created_at').defaultNow(),
@@ -220,6 +221,7 @@ export const photos = pgTable(
   (table) => [
     index('idx_photos_invitation_uid').on(table.invitationUid),
     index('idx_photos_order').on(table.invitationUid, table.orderIndex),
+    index('idx_photos_section').on(table.invitationUid, table.section),
   ]
 )
 

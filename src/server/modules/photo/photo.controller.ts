@@ -28,9 +28,11 @@ function generateFilename(originalName: string): string {
 export const publicPhotoController = new Hono()
 
 // GET /api/:uid/photos - Get all photos for an invitation
+// Query params: ?section=gallery|hero
 publicPhotoController.get('/:uid/photos', async (c) => {
   const { uid } = c.req.param()
-  const photos = await photoService.getByInvitationUid(uid)
+  const section = c.req.query('section')
+  const photos = await photoService.getByInvitationUid(uid, section)
   return c.json({ success: true, data: photos })
 })
 
@@ -38,9 +40,11 @@ publicPhotoController.get('/:uid/photos', async (c) => {
 export const adminPhotoController = new Hono()
 
 // GET /api/admin/invitations/:uid/photos - Get photos for admin
+// Query params: ?section=gallery|hero
 adminPhotoController.get('/:uid/photos', async (c) => {
   const { uid } = c.req.param()
-  const photos = await photoService.getByInvitationUid(uid)
+  const section = c.req.query('section')
+  const photos = await photoService.getByInvitationUid(uid, section)
   return c.json({ success: true, data: photos })
 })
 
@@ -104,11 +108,13 @@ adminPhotoController.post('/:uid/photos/upload', async (c) => {
   }
 })
 
-// POST /api/admin/invitations/:uid/photos/batch - Replace all photos
+// POST /api/admin/invitations/:uid/photos/batch - Replace all photos for a section
+// Body: { photos: [...], section?: 'gallery' | 'hero' }
 adminPhotoController.post('/:uid/photos/batch', async (c) => {
   const { uid } = c.req.param()
   const body = await c.req.json()
-  const photos = await photoService.replaceAll(uid, body.photos || [])
+  const section = body.section || c.req.query('section')
+  const photos = await photoService.replaceAll(uid, body.photos || [], section)
   return c.json({ success: true, data: photos })
 })
 

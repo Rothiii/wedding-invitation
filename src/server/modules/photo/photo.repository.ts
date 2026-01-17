@@ -1,9 +1,16 @@
-import { eq, asc } from 'drizzle-orm'
+import { eq, asc, and } from 'drizzle-orm'
 import { db } from '../../infra/database/client'
 import { photos, type Photo, type NewPhoto } from '../../infra/database/schema'
 
 export class PhotoRepository {
-  async findByInvitationUid(invitationUid: string): Promise<Photo[]> {
+  async findByInvitationUid(invitationUid: string, section?: string): Promise<Photo[]> {
+    if (section) {
+      return db
+        .select()
+        .from(photos)
+        .where(and(eq(photos.invitationUid, invitationUid), eq(photos.section, section)))
+        .orderBy(asc(photos.orderIndex))
+    }
     return db
       .select()
       .from(photos)
@@ -44,15 +51,20 @@ export class PhotoRepository {
     return result.length > 0
   }
 
-  async deleteByInvitationUid(invitationUid: string): Promise<void> {
-    await db.delete(photos).where(eq(photos.invitationUid, invitationUid))
+  async deleteByInvitationUid(invitationUid: string, section?: string): Promise<void> {
+    if (section) {
+      await db.delete(photos).where(and(eq(photos.invitationUid, invitationUid), eq(photos.section, section)))
+    } else {
+      await db.delete(photos).where(eq(photos.invitationUid, invitationUid))
+    }
   }
 
   async replaceAll(
     invitationUid: string,
-    data: Omit<NewPhoto, 'invitationUid'>[]
+    data: Omit<NewPhoto, 'invitationUid'>[],
+    section?: string
   ): Promise<Photo[]> {
-    await this.deleteByInvitationUid(invitationUid)
+    await this.deleteByInvitationUid(invitationUid, section)
     if (data.length === 0) return []
     return this.createMany(invitationUid, data)
   }
