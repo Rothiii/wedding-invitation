@@ -1,11 +1,34 @@
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { useConfig } from '@/hooks/useConfig'
 import { useInvitation } from '@/context/InvitationContext'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 export default function SaveTheDate() {
     const config = useConfig()
     const { config: invitationConfig } = useInvitation()
+    const sectionRef = useRef(null)
+
+    // Scroll-based animation
+    const { scrollYProgress } = useScroll({
+        target: sectionRef,
+        offset: ["start end", "start start"]
+    })
+
+    // Transform scroll progress to animation values
+    // Photos slide down (y: -100 to 0)
+    const photo1Y = useTransform(scrollYProgress, [0, 0.5], [-100, 0])
+    const photo2Y = useTransform(scrollYProgress, [0.1, 0.6], [-100, 0])
+    const photo3Y = useTransform(scrollYProgress, [0.3, 0.8], [-100, 0])
+
+    // Opacity for fade-in elements
+    const dateBoxOpacity = useTransform(scrollYProgress, [0.2, 0.5], [0, 1])
+    const nameBannerOpacity = useTransform(scrollYProgress, [0.3, 0.6], [0, 1])
+    const saveTheDateOpacity = useTransform(scrollYProgress, [0.5, 0.8], [0, 1])
+
+    // Photo opacity (fade in as they slide)
+    const photo1Opacity = useTransform(scrollYProgress, [0, 0.3], [0, 1])
+    const photo2Opacity = useTransform(scrollYProgress, [0.1, 0.4], [0, 1])
+    const photo3Opacity = useTransform(scrollYProgress, [0.3, 0.6], [0, 1])
 
     // Get hero photos for the collage
     const heroPhotos = invitationConfig?.heroPhotos || []
@@ -45,60 +68,60 @@ export default function SaveTheDate() {
     const formatNumber = (num) => num.toString().padStart(2, '0')
 
     return (
-        <section className="bg-black py-12 px-4">
+        <section ref={sectionRef} className="bg-black py-12 px-4">
             <div className="max-w-md mx-auto">
                 {/* Photo Collage with Date */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="relative mb-4"
-                >
+                <div className="relative mb-4">
                     {/* Top Row - Photo 1 + Date Box + Photo 2 */}
                     <div className="flex gap-2">
-                        {/* Left photo - horizontal */}
+                        {/* Left photo - slide down based on scroll */}
                         {heroPhotos[0] && (
-                            <div className="w-2/3 aspect-[2/3] overflow-hidden">
+                            <motion.div
+                                style={{ y: photo1Y, opacity: photo1Opacity }}
+                                className="w-2/3 aspect-[2/3] overflow-hidden"
+                            >
                                 <img
                                     src={heroPhotos[0].src}
                                     alt="Wedding photo"
                                     className="w-full h-full object-cover"
                                 />
-                            </div>
+                            </motion.div>
                         )}
 
                         {/* Right side - Date box + Photo 2 */}
                         <div className="w-1/3 flex flex-col gap-2">
-                            {/* Date box */}
-                            <div className="bg-[#f5f0e8] p-2 aspect-[2/3]">
+                            {/* Date box - fade in based on scroll */}
+                            <motion.div
+                                style={{ opacity: dateBoxOpacity }}
+                                className="bg-[#f5f0e8] p-2 aspect-[2/3]"
+                            >
                                 <div className="w-full h-full border border-black flex flex-col items-center justify-center">
                                     <span className="text-3xl font-light text-black cormorant-infant-regular">{day}</span>
                                     <span className="text-3xl font-light text-black cormorant-infant-regular">{month}</span>
                                     <span className="text-3xl font-light text-black cormorant-infant-regular">{year}</span>
                                 </div>
-                            </div>
+                            </motion.div>
 
-                            {/* Photo 2 - vertical */}
+                            {/* Photo 2 - slide down based on scroll */}
                             {heroPhotos[1] && (
-                                <div className="flex-1 overflow-hidden">
+                                <motion.div
+                                    style={{ y: photo2Y, opacity: photo2Opacity }}
+                                    className="flex-1 overflow-hidden"
+                                >
                                     <img
                                         src={heroPhotos[1].src}
                                         alt="Wedding photo"
                                         className="w-full h-full object-cover"
                                     />
-                                </div>
+                                </motion.div>
                             )}
                         </div>
                     </div>
-                </motion.div>
+                </div>
 
-                {/* Name Banner */}
+                {/* Name Banner - fade in based on scroll */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
+                    style={{ opacity: nameBannerOpacity }}
                     className="bg-white border-2 border-black p-2 mb-4"
                 >
                     <div className="border border-black px-4 py-3">
@@ -111,13 +134,10 @@ export default function SaveTheDate() {
                     </div>
                 </motion.div>
 
-                {/* Bottom Photo */}
+                {/* Bottom Photo - slide down based on scroll */}
                 {heroPhotos[2] && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
+                        style={{ y: photo3Y, opacity: photo3Opacity }}
                         className="aspect-[4/3] overflow-hidden mb-8"
                     >
                         <img
@@ -128,12 +148,9 @@ export default function SaveTheDate() {
                     </motion.div>
                 )}
 
-                {/* Save The Date */}
+                {/* Save The Date - fade in based on scroll */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
+                    style={{ opacity: saveTheDateOpacity }}
                     className="text-center"
                 >
                     <h3 className="text-xl tracking-[0.3em] text-white mb-8 font-light cormorant-infant-regular">
