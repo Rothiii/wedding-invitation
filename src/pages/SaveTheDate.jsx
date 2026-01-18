@@ -56,10 +56,10 @@ export default function SaveTheDate() {
                     className="relative mb-4"
                 >
                     {/* Top Row - Photo 1 + Date Box + Photo 2 */}
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
                         {/* Left photo - horizontal */}
                         {heroPhotos[0] && (
-                            <div className="w-3/4 aspect-[4/3] overflow-hidden">
+                            <div className="w-2/3 aspect-[2/3] overflow-hidden">
                                 <img
                                     src={heroPhotos[0].src}
                                     alt="Wedding photo"
@@ -69,9 +69,9 @@ export default function SaveTheDate() {
                         )}
 
                         {/* Right side - Date box + Photo 2 */}
-                        <div className="w-1/4 flex flex-col gap-1">
+                        <div className="w-1/3 flex flex-col gap-2">
                             {/* Date box */}
-                            <div className="bg-[#f5f0e8] border-2 border-black p-2 aspect-square">
+                            <div className="bg-[#f5f0e8] p-2 aspect-[2/3]">
                                 <div className="w-full h-full border border-black flex flex-col items-center justify-center">
                                     <span className="text-3xl font-light text-black cormorant-infant-regular">{day}</span>
                                     <span className="text-3xl font-light text-black cormorant-infant-regular">{month}</span>
