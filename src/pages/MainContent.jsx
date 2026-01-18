@@ -1,4 +1,5 @@
 import Hero from '@/pages/Hero'
+import SaveTheDate from '@/pages/SaveTheDate'
 import Events from '@/pages/Events'
 import Location from '@/pages/Location';
 import Wishes from '@/pages/Wishes';
@@ -18,6 +19,7 @@ export default function MainContent() {
     return (
         <>
             <Hero />
+            <SaveTheDate />
             <Events />
             <Location />
             {photos.length > 0 && (
