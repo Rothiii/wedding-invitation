@@ -35,14 +35,17 @@ export default function Hero() {
         <section id="home" className="min-h-screen relative overflow-hidden">
             {/* Photo Slideshow Background */}
             <div className="absolute inset-0">
-                <AnimatePresence mode="wait">
+                <AnimatePresence initial={false}>
                     {heroPhotos.length > 0 ? (
                         <motion.div
                             key={currentIndex}
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -50 }}
-                            transition={{ duration: 0.6, ease: 'easeInOut' }}
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{
+                                duration: 0.8,
+                                ease: [0.4, 0, 0.2, 1]
+                            }}
                             className="absolute inset-0"
                         >
                             <img
@@ -101,23 +104,6 @@ export default function Hero() {
                     </motion.div>
                 </motion.button>
             </div>
-
-            {/* Photo indicators */}
-            {heroPhotos.length > 1 && (
-                <div className="absolute bottom-32 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                    {heroPhotos.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => setCurrentIndex(index)}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${
-                                index === currentIndex
-                                    ? 'bg-white w-6'
-                                    : 'bg-white/40 w-1.5 hover:bg-white/60'
-                            }`}
-                        />
-                    ))}
-                </div>
-            )}
         </section>
     )
 }
