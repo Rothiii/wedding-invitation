@@ -68,7 +68,7 @@ export default function SaveTheDate() {
     const formatNumber = (num) => num.toString().padStart(2, '0')
 
     return (
-        <section ref={sectionRef} className="bg-black py-12 px-4">
+        <section ref={sectionRef} className="bg-black py-12 px-4 relative z-0">
             <div className="max-w-md mx-auto">
                 {/* Photo Collage with Date */}
                 <div className="relative mb-4">

@@ -32,7 +32,7 @@ export default function Hero() {
     }, [])
 
     return (
-        <section id="home" className="min-h-screen relative overflow-hidden">
+        <section id="home" className="min-h-screen relative overflow-hidden z-10 bg-black">
             {/* Photo Slideshow Background */}
             <div className="absolute inset-0">
                 <AnimatePresence initial={false}>
